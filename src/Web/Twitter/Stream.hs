@@ -18,17 +18,7 @@ import Web.Twitter.Types
 import Web.Twitter.Util
 
 import qualified Data.Conduit as C
-import qualified Data.Conduit.Internal as CI
 import qualified Network.HTTP.Types as HT
-import Control.Monad.IO.Class
-
-($=+) :: MonadIO m
-      => CI.ResumableSource m a
-      -> CI.Conduit a m o
-      -> m (CI.ResumableSource m o)
-rsrc $=+ cndt = do
-  (src, finalizer) <- C.unwrapResumable rsrc
-  return $ CI.ResumableSource (src C.$= cndt) finalizer
 
 userstream :: TwitterBaseM m => TW WithToken m (C.ResumableSource (TW WithToken m) StreamingAPI)
 userstream = do
