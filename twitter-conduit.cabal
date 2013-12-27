@@ -2,8 +2,8 @@ name:                twitter-conduit
 version:             0.1.0
 license:             BSD3
 license-file:        LICENSE
-author:              HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
-maintainer:          HATTORI Hiroki <seagull.kamome@gmail.com>
+author:              Shohei Yasutake, HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
+maintainer:          Shohei Yasutake <amutake.s@gmail.com>
 synopsis:            Twitter API package with conduit interface and Streaming API support.
 description:         This package uses conduit package for access Twitter API.
 category:            Web, Conduit
@@ -18,18 +18,18 @@ source-repository head
 
 library
   exposed-modules:     Web.Twitter
-                     , Web.Twitter.API
-                     , Web.Twitter.Fetch
-                     , Web.Twitter.Monad
-                     , Web.Twitter.Post
-                     , Web.Twitter.Param
-                     , Web.Twitter.REST.Timelines
-                     , Web.Twitter.REST.Tweets
-                     , Web.Twitter.Stream
-                     , Web.Twitter.Status
+                       Web.Twitter.API
+                       Web.Twitter.Fetch
+                       Web.Twitter.Monad
+                       Web.Twitter.Post
+                       Web.Twitter.Param
+                       Web.Twitter.REST.Timelines
+                       Web.Twitter.REST.Tweets
+                       Web.Twitter.Stream
+                       Web.Twitter.Status
   other-modules:       Web.Twitter.General
-                     , Web.Twitter.Internal
-                     , Web.Twitter.Util
+                       Web.Twitter.Internal
+                       Web.Twitter.Util
   build-depends:       base ==4.*
                      , transformers ==0.3.*
                      , mtl
