@@ -23,6 +23,7 @@ library
                      , Web.Twitter.Monad
                      , Web.Twitter.Post
                      , Web.Twitter.Param
+                     , Web.Twitter.REST.Timelines
                      , Web.Twitter.REST.Tweets
                      , Web.Twitter.Stream
                      , Web.Twitter.Status
