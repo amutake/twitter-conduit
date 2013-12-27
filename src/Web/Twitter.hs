@@ -1,20 +1,19 @@
 module Web.Twitter
-    ( module Web.Twitter.API
-    , module Web.Twitter.Fetch
-    , module Web.Twitter.Status
-    , module Web.Twitter.Monad
-    , module Web.Twitter.Post
-    , module Web.Twitter.Param
-    , module Web.Twitter.Stream
+    ( TwitterT
+    , runTwitterT
+    , runTwitterTWithManager
+    , Twitter
+    , runTwitter
+    , TwitterException (..)
+    , module Web.Twitter.Auth
+    , module Web.Twitter.REST.Timelines
+    , module Web.Twitter.REST.Tweets
       -- * re-exports
     , module Web.Twitter.Types
     ) where
 
-import Web.Twitter.API
-import Web.Twitter.Fetch
-import Web.Twitter.Status
-import Web.Twitter.Monad
-import Web.Twitter.Post
-import Web.Twitter.Param
-import Web.Twitter.Stream
+import Web.Twitter.Auth
+import Web.Twitter.Internal
+import Web.Twitter.REST.Timelines
+import Web.Twitter.REST.Tweets
 import Web.Twitter.Types
