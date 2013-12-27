@@ -5,7 +5,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
-module Web.Twitter.Conduit.Post
+module Web.Twitter.Post
        ( statusesUpdate
        , statusesRetweetId
 
@@ -27,10 +27,10 @@ module Web.Twitter.Conduit.Post
        where
 
 import qualified Network.HTTP.Types as HT
-import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Api
+import Web.Twitter.Monad
+import Web.Twitter.API
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Param
+import Web.Twitter.Param
 
 import Data.Text (Text)
 import Data.Text.Encoding as T

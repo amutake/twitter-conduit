@@ -8,7 +8,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 #endif
 
-module Web.Twitter.Conduit.Api
+module Web.Twitter.API
        ( api
        , apiGet
        , apiGet'
@@ -26,8 +26,8 @@ module Web.Twitter.Conduit.Api
        , endpoint
        ) where
 
-import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Utils
+import Web.Twitter.Monad
+import Web.Twitter.Util
 
 import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT
@@ -44,7 +44,7 @@ import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 
-type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
+type AuthHandler cred m = Request -> TW cred m Request
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)

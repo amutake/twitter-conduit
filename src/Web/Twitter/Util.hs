@@ -1,9 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE CPP #-}
 
-module Web.Twitter.Conduit.Utils
-       (
-         sinkJSON
+module Web.Twitter.Util
+       ( sinkJSON
        , sinkFromJSON
        , conduitJSON
        , conduitFromJSON
@@ -68,5 +67,3 @@ insertQuery (key, value) = mk
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = AT.parseMaybe parseJSON
-
-

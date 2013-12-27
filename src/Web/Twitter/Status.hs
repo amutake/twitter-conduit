@@ -5,7 +5,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
-module Web.Twitter.Conduit.Status
+module Web.Twitter.Status
        ( statuses
        -- * Timelines
        , homeTimeline
@@ -28,8 +28,8 @@ module Web.Twitter.Conduit.Status
        -- , oembed
        ) where
 
-import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Monad
+import Web.Twitter.API
+import Web.Twitter.Monad
 import Web.Twitter.Types
 
 import qualified Network.HTTP.Types as HT

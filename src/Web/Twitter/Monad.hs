@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Web.Twitter.Conduit.Monad
+module Web.Twitter.Monad
        ( TW
        , NoToken
        , WithToken
@@ -76,12 +76,12 @@ getProxy = asks (twProxy . twInfo)
 getManager :: Monad m => TW cred m Manager
 getManager = asks twManager
 
-signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request (TW WithToken m) -> TW WithToken m (Request (TW WithToken m))
+signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request -> TW WithToken m Request
 signOAuthTW req = do
   UseOAuth oa cred <- asks (twToken . twInfo)
   signOAuth oa cred req
 
-signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request (TW cred m) -> TW cred m (Request (TW cred m))
+signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request -> TW cred m Request
 signOAuthIfExistTW req = do
   token <- asks (twToken . twInfo)
   case token of

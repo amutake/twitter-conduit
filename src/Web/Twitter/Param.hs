@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Conduit.Param
+module Web.Twitter.Param
        ( UserParam(..)
        , ListParam(..)
        , mkUserParam
@@ -8,7 +8,7 @@ module Web.Twitter.Conduit.Param
        ) where
 
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Utils
+import Web.Twitter.Util
 
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString.Char8 as B8
@@ -30,4 +30,3 @@ mkListParam (ListNameParam listname) =
   where
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln
-
