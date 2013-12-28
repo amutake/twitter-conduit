@@ -46,11 +46,11 @@ api :: (MonadResource m)
     -> TwitterT m (Response (ResumableSource (TwitterT m) ByteString))
 api ty name mth query = do
     env <- ask
-    let oauth = twitterOAuth . twitterAuth $ env
-        cred = twitterCredential . twitterAuth $ env
+    let oauth = twitterOAuth env
+        token = twitterAccessToken env
         man = twitterManager env
     req <- liftIO $ parseUrl $ endpoint ty name
-    signed <- signOAuth oauth cred req
+    signed <- signOAuth oauth token req
         { method = mth
         , queryString = renderQuery' query
         }

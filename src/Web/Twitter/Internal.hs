@@ -3,7 +3,6 @@
 module Web.Twitter.Internal
     ( TwitterT
     , Env (..)
-    , Auth (..)
     , runTwitterT
     , runTwitterTWithManager
     , Twitter
@@ -23,44 +22,37 @@ import Web.Twitter.Auth
 type TwitterT m = ReaderT Env m
 
 data Env = Env
-    { twitterAuth :: Auth
-    , twitterManager :: Manager
-    }
-
-data Auth = Auth
     { twitterOAuth :: OAuth
-    , twitterCredential :: Credential
+    , twitterAccessToken :: AccessToken
+    , twitterManager :: Manager
     }
 
 runTwitterT :: (MonadIO m, MonadBaseControl IO m)
             => OAuth
-            -> Credential
+            -> AccessToken
             -> TwitterT (ResourceT m) a
             -> m a
-runTwitterT oauth cred twitter =
-    withManager $ runTwitterTWithManager oauth cred twitter
+runTwitterT oauth token twitter =
+    withManager $ runTwitterTWithManager oauth token twitter
 
 runTwitterTWithManager :: OAuth
-                       -> Credential
+                       -> AccessToken
                        -> TwitterT m a
                        -> Manager
                        -> m a
-runTwitterTWithManager oauth cred twitter man =
+runTwitterTWithManager oauth token twitter man =
     runReaderT twitter env
   where
     env = Env
-        { twitterAuth = auth
-        , twitterManager = man
-        }
-    auth = Auth
         { twitterOAuth = oauth
-        , twitterCredential = cred
+        , twitterAccessToken = token
+        , twitterManager = man
         }
 
 type Twitter = TwitterT (ResourceT IO)
 
 runTwitter :: OAuth
-           -> Credential
+           -> AccessToken
            -> Twitter a
            -> IO a
 runTwitter = runTwitterT

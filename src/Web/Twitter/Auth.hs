@@ -2,15 +2,15 @@
 
 module Web.Twitter.Auth
     ( OAuth
-    , Credential
+    , AccessToken
     , newOAuth
-    , newCredential
+    , newAccessToken
     , authorize
     , authorizeIO
     , readOAuthFromJsonFile
-    , readCredentialFromJsonFile
+    , readAccessTokenFromJsonFile
     , saveOAuthToJsonFile
-    , saveCredentialToJsonFile
+    , saveAccessTokenToJsonFile
     ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -26,6 +26,8 @@ import Web.Authenticate.OAuth hiding (newOAuth)
 
 import Web.Twitter.Util
 
+type AccessToken = Credential
+
 newOAuth :: ByteString -> ByteString -> OAuth
 newOAuth key secret = def
     { oauthServerName = "api.twitter.com"
@@ -36,10 +38,13 @@ newOAuth key secret = def
     , oauthConsumerSecret = secret
     }
 
+newAccessToken :: ByteString -> ByteString -> AccessToken
+newAccessToken = newCredential
+
 authorize :: (MonadResource m, MonadBaseControl IO m)
           => OAuth
           -> (String -> m Int)
-          -> m Credential
+          -> m AccessToken
 authorize oauth getPIN = withManager $ \man -> do
     tmp <- getTemporaryCredential oauth man
     let url = authorizeUrl oauth tmp
@@ -49,7 +54,7 @@ authorize oauth getPIN = withManager $ \man -> do
 
 authorizeIO :: OAuth
             -> (String -> IO Int)
-            -> IO Credential
+            -> IO AccessToken
 authorizeIO oauth getPIN =
     runResourceT $ authorize oauth $ lift . getPIN
 
@@ -63,12 +68,12 @@ readOAuthFromJsonFile path = do
         <*> o .: "consumer_secret"
     parser v = fail $ show v
 
-readCredentialFromJsonFile :: FilePath -> IO Credential
-readCredentialFromJsonFile path = do
+readAccessTokenFromJsonFile :: FilePath -> IO AccessToken
+readAccessTokenFromJsonFile path = do
     bs <- BL.readFile path
     either error return $ eitherDecodeWith parser bs
   where
-    parser (Object o) = newCredential
+    parser (Object o) = newAccessToken
         <$> o .: "access_token"
         <*> o .: "access_token_secret"
     parser v = fail $ show v
@@ -83,8 +88,8 @@ saveOAuthToJsonFile path oauth = withBinaryFile path WriteMode $ \handle -> do
         , ("consumer_secret", oauthConsumerSecret oa)
         ] :: [(ByteString, ByteString)])
 
-saveCredentialToJsonFile :: FilePath -> Credential -> IO ()
-saveCredentialToJsonFile path cred = withBinaryFile path WriteMode $ \handle -> do
+saveAccessTokenToJsonFile :: FilePath -> AccessToken -> IO ()
+saveAccessTokenToJsonFile path cred = withBinaryFile path WriteMode $ \handle -> do
     BL.hPutStr handle $ encodeWith encoder cred
     hPutStrLn handle ""
   where
