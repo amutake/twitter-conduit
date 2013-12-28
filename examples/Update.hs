@@ -6,8 +6,8 @@ import Web.Twitter
 
 main :: IO ()
 main = do
-    oauth <- getOAuthFromJsonFile "oauth_consumer.json"
-    cred <- getCredentialFromJsonFile "access_token.json"
+    oauth <- readOAuthFromJsonFile "oauth_consumer.json"
+    cred <- readCredentialFromJsonFile "access_token.json"
     text <- T.getLine
     status <- runTwitter oauth cred $
         update text Nothing Nothing Nothing Nothing Nothing Nothing

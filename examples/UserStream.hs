@@ -7,8 +7,8 @@ import Web.Twitter
 
 main :: IO ()
 main = do
-    oauth <- getOAuthFromJsonFile "oauth_consumer.json"
-    cred <- getCredentialFromJsonFile "access_token.json"
+    oauth <- readOAuthFromJsonFile "oauth_consumer.json"
+    cred <- readCredentialFromJsonFile "access_token.json"
     runTwitter oauth cred $ do
         source <- user
         source $$+- awaitForever (liftIO . print)

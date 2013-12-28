@@ -1,32 +1,30 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Web.Twitter.Auth
-    ( Auth (..)
-    , OAuth
+    ( OAuth
     , Credential
     , newOAuth
     , newCredential
     , authorize
     , authorizeIO
-    , getOAuthFromJsonFile
-    , getCredentialFromJsonFile
+    , readOAuthFromJsonFile
+    , readCredentialFromJsonFile
+    , saveOAuthToJsonFile
+    , saveCredentialToJsonFile
     ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Trans (lift)
-import Data.Aeson (Value (..), (.:))
+import Data.Aeson (Value (..), (.:), toJSON)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import Data.Conduit (MonadResource, MonadBaseControl, runResourceT)
+import Data.Map (fromList)
 import Network.HTTP.Conduit (withManager)
+import System.IO (withBinaryFile, hPutStrLn, IOMode (..))
 import Web.Authenticate.OAuth hiding (newOAuth)
 
 import Web.Twitter.Util
-
-data Auth = Auth
-    { twitterOAuth :: OAuth
-    , twitterCredential :: Credential
-    }
 
 newOAuth :: ByteString -> ByteString -> OAuth
 newOAuth key secret = def
@@ -39,9 +37,9 @@ newOAuth key secret = def
     }
 
 authorize :: (MonadResource m, MonadBaseControl IO m)
-              => OAuth
-              -> (String -> m Int)
-              -> m Credential
+          => OAuth
+          -> (String -> m Int)
+          -> m Credential
 authorize oauth getPIN = withManager $ \man -> do
     tmp <- getTemporaryCredential oauth man
     let url = authorizeUrl oauth tmp
@@ -50,13 +48,13 @@ authorize oauth getPIN = withManager $ \man -> do
     getAccessToken oauth tmp' man
 
 authorizeIO :: OAuth
-                -> (String -> IO Int)
-                -> IO Credential
+            -> (String -> IO Int)
+            -> IO Credential
 authorizeIO oauth getPIN =
     runResourceT $ authorize oauth $ lift . getPIN
 
-getOAuthFromJsonFile :: FilePath -> IO OAuth
-getOAuthFromJsonFile path = do
+readOAuthFromJsonFile :: FilePath -> IO OAuth
+readOAuthFromJsonFile path = do
     bs <- BL.readFile path
     either error return $ eitherDecodeWith parser bs
   where
@@ -65,8 +63,8 @@ getOAuthFromJsonFile path = do
         <*> o .: "consumer_secret"
     parser v = fail $ show v
 
-getCredentialFromJsonFile :: FilePath -> IO Credential
-getCredentialFromJsonFile path = do
+readCredentialFromJsonFile :: FilePath -> IO Credential
+readCredentialFromJsonFile path = do
     bs <- BL.readFile path
     either error return $ eitherDecodeWith parser bs
   where
@@ -74,3 +72,20 @@ getCredentialFromJsonFile path = do
         <$> o .: "access_token"
         <*> o .: "access_token_secret"
     parser v = fail $ show v
+
+saveOAuthToJsonFile :: FilePath -> OAuth -> IO ()
+saveOAuthToJsonFile path oauth = withBinaryFile path WriteMode $ \handle -> do
+    BL.hPutStr handle $ encodeWith encoder oauth
+    hPutStrLn handle ""
+  where
+    encoder oa = toJSON . fromList $ (
+        [ ("consumer_key", oauthConsumerKey oa)
+        , ("consumer_secret", oauthConsumerSecret oa)
+        ] :: [(ByteString, ByteString)])
+
+saveCredentialToJsonFile :: FilePath -> Credential -> IO ()
+saveCredentialToJsonFile path cred = withBinaryFile path WriteMode $ \handle -> do
+    BL.hPutStr handle $ encodeWith encoder cred
+    hPutStrLn handle ""
+  where
+    encoder = toJSON . fromList . unCredential

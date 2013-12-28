@@ -27,6 +27,11 @@ data Env = Env
     , twitterManager :: Manager
     }
 
+data Auth = Auth
+    { twitterOAuth :: OAuth
+    , twitterCredential :: Credential
+    }
+
 runTwitterT :: (MonadIO m, MonadBaseControl IO m)
             => OAuth
             -> Credential
