@@ -41,8 +41,17 @@ runTweetsTests oauth test1 test2 = do
                     statuses <- runTwitter oauth test1 $ retweets (statusId status) Nothing Nothing
                     map statusId statuses `shouldBe` [statusId status']
 
+    describe "statuses/retweeters/ids" $ do
+        it "retweeters" $ do
+            text <- getRandomText
+            withTweetFrom oauth test1 text $ \status -> do
+                withRetweetFrom oauth test2 (statusId status) $ const $ do
+                    user2 <- runTwitter oauth test2 $ verifyCredentials Nothing Nothing
+                    rts <- runTwitter oauth test1 $ retweeters (statusId status) Nothing Nothing
+                    idsIds rts `shouldBe` [userId user2]
+
 getRandomText :: IO T.Text
-getRandomText = T.pack <$> replicateM 8 (randomRIO ('!', '~'))
+getRandomText = T.pack <$> replicateM 16 (randomRIO ('a', 'z'))
 
 withTweet :: T.Text -> (Status -> Twitter a) -> Twitter a
 withTweet text = bracket
