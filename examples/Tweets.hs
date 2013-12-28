@@ -22,9 +22,13 @@ main = do
         sres <- showStatus sid Nothing Nothing Nothing
         liftIO $ print sres
 
-        liftIO $ putStrLn "---- retweets ----"
-        rres <- retweets sid Nothing Nothing
+        liftIO $ putStrLn "---- retweet ----"
+        rres <- retweet sid Nothing
         liftIO $ print rres
+
+        liftIO $ putStrLn "---- retweets ----"
+        rsres <- retweets sid Nothing Nothing
+        liftIO $ print rsres
 
         liftIO $ putStrLn "---- destroy ----"
         dres <- destroy sid Nothing

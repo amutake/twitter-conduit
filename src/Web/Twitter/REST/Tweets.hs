@@ -52,6 +52,17 @@ destroy sid trim = apiSingle REST ("statuses/destroy/" ++ show sid) methodPost q
         [ "trim_user" <:> trim
         ]
 
+-- | <https://dev.twitter.com/docs/api/1.1/post/statuses/retweet/%3Aid> 2012-12-03 14:06
+retweet :: MonadResource m
+        => StatusId -- ^ id
+        -> Maybe Bool -- ^ trim_user (optional)
+        -> TwitterT m Status
+retweet sid trim = apiSingle REST ("statuses/retweet/" ++ show sid) methodPost query
+  where
+    query =
+      [ "trim_user" <:> trim
+      ]
+
 -- | <https://dev.twitter.com/docs/api/1.1/post/statuses/update> 2012-11-20 07:24
 update :: MonadResource m
        => Text -- ^ status
