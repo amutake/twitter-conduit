@@ -82,11 +82,8 @@ apiSingle :: (MonadResource m, FromJSON a)
           -> Query
           -> TwitterT m a
 apiSingle ty name mth query = do
-    liftIO $ putStrLn "start"
     res <- api ty name mth query >>= lbsResponse
-    liftIO $ putStrLn "ba"
     let body = responseBody res
-    liftIO $ putStrLn "hoge"
 #ifdef DEBUG
     handle <- liftIO $ openBinaryFile "debug.log" AppendMode
     liftIO $ hPutStrLn handle $ endpoint ty name ++ unpack (renderQuery' query)

@@ -74,8 +74,8 @@ readAccessTokenFromJsonFile path = do
     either error return $ eitherDecodeWith parser bs
   where
     parser (Object o) = newAccessToken
-        <$> o .: "access_token"
-        <*> o .: "access_token_secret"
+        <$> o .: "oauth_token"
+        <*> o .: "oauth_token_secret"
     parser v = fail $ show v
 
 saveOAuthToJsonFile :: FilePath -> OAuth -> IO ()
