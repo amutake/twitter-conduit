@@ -23,12 +23,12 @@ flag debug
 library
   exposed-modules:     Web.Twitter
                        Web.Twitter.Auth
+                       Web.Twitter.Core
                        Web.Twitter.REST.Timelines
                        Web.Twitter.REST.Tweets
                        Web.Twitter.Streaming.User
                        Web.Twitter.Util
   other-modules:       Web.Twitter.General
-                       Web.Twitter.Internal
   build-depends:       base ==4.*
                      , transformers ==0.3.*
                      , mtl

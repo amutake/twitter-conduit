@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances, RankNTypes, GADTs #-}
 
-module Web.Twitter.Internal.QueryBuilder
+module Web.Twitter.Internal.Query
     ( renderQuery'
     , (<:>)
     ) where

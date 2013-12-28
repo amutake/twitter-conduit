@@ -15,9 +15,8 @@ import Data.Conduit (MonadResource, MonadBaseControl, runResourceT)
 import Network.HTTP.Conduit (withManager)
 import Web.Authenticate.OAuth hiding (newOAuth)
 
+import Web.Twitter.Internal.Types
 import Web.Twitter.Internal.Util
-
-type AccessToken = Credential
 
 newOAuth :: ByteString -> ByteString -> OAuth
 newOAuth key secret = def

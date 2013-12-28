@@ -1,8 +1,7 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
-module Web.Twitter.Internal
+module Web.Twitter.Core
     ( TwitterT
-    , Env (..)
     , runTwitterT
     , runTwitterTWithManager
     , Twitter
@@ -10,22 +9,15 @@ module Web.Twitter.Internal
     , TwitterException (..)
     ) where
 
-import Control.Exception (Exception)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader (ReaderT (..))
 import Data.Conduit
-import Data.Typeable (Typeable)
 import Network.HTTP.Conduit (Manager, withManager)
 
 import Web.Twitter.Auth
+import Web.Twitter.Internal.Types
 
 type TwitterT m = ReaderT Env m
-
-data Env = Env
-    { twitterOAuth :: OAuth
-    , twitterAccessToken :: AccessToken
-    , twitterManager :: Manager
-    }
 
 runTwitterT :: (MonadIO m, MonadBaseControl IO m)
             => OAuth
@@ -56,9 +48,3 @@ runTwitter :: OAuth
            -> Twitter a
            -> IO a
 runTwitter = runTwitterT
-
-data TwitterException
-    = ParseError String
-    deriving (Show, Eq, Typeable)
-
-instance Exception TwitterException

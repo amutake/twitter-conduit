@@ -5,9 +5,9 @@ module Web.Twitter.REST.Timelines where
 import Data.Conduit (MonadResource)
 import Network.HTTP.Types (methodGet)
 
+import Web.Twitter.Core
 import Web.Twitter.General
-import Web.Twitter.Internal
-import Web.Twitter.Internal.QueryBuilder
+import Web.Twitter.Internal.Query
 import Web.Twitter.Types
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline> 2013-06-20 13:39

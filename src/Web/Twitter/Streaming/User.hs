@@ -5,8 +5,8 @@ module Web.Twitter.Streaming.User
 import Data.Conduit (MonadResource, ResumableSource)
 import Network.HTTP.Types (methodGet)
 
+import Web.Twitter.Core
 import Web.Twitter.General
-import Web.Twitter.Internal
 import Web.Twitter.Types
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/user> 2013-08-26 14:13

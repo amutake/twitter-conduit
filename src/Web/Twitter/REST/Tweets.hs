@@ -7,9 +7,9 @@ import Data.Conduit (MonadResource)
 import Data.Text (Text)
 import Network.HTTP.Types (methodPost)
 
+import Web.Twitter.Core
 import Web.Twitter.General
-import Web.Twitter.Internal
-import Web.Twitter.Internal.QueryBuilder
+import Web.Twitter.Internal.Query
 import Web.Twitter.Types
 
 -- | <https://dev.twitter.com/docs/api/1.1/post/statuses/update> 2012-11-20 07:24

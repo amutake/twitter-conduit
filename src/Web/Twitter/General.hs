@@ -17,8 +17,9 @@ import Network.HTTP.Conduit
 import Network.HTTP.Types
 import Web.Authenticate.OAuth
 
-import Web.Twitter.Internal
-import Web.Twitter.Internal.QueryBuilder
+import Web.Twitter.Core
+import Web.Twitter.Internal.Query
+import Web.Twitter.Internal.Types
 import Web.Twitter.Internal.Util
 
 #ifdef DEBUG
