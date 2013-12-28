@@ -7,5 +7,5 @@ main = do
     oauth <- readOAuthFromJsonFile "oauth_consumer.json"
     token <- readAccessTokenFromJsonFile "access_token.json"
     statuses <- runTwitter oauth token $
-        mentionsTimeline Nothing Nothing Nothing Nothing Nothing Nothing
+        userTimeline Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
     print statuses

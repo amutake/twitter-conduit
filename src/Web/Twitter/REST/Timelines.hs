@@ -3,6 +3,7 @@
 module Web.Twitter.REST.Timelines where
 
 import Data.Conduit (MonadResource)
+import Data.Text (Text)
 import Network.HTTP.Types (methodGet)
 
 import Web.Twitter.Core
@@ -29,4 +30,30 @@ mentionsTimeline count sid mid trim contrib inc =
         , "trim_user" <:> trim
         , "contributor_details" <:> contrib
         , "include_entities" <:> inc
+        ]
+
+userTimeline :: MonadResource m
+             => Maybe UserId -- ^ user_id (optional)
+             -> Maybe Text -- ^ screen_name (optional)
+             -> Maybe Int -- ^ count (optional)
+             -> Maybe StatusId -- ^ since_id (optional)
+             -> Maybe StatusId -- ^ max_id (optional)
+             -> Maybe Bool -- ^ trim_user (optional)
+             -> Maybe Bool -- ^ contributor_details (optional)
+             -> Maybe Bool -- ^ include_rts (optional)
+             -> Maybe Bool -- ^ exclude_replies (optional)
+             -> TwitterT m [Status]
+userTimeline uid name count sid mid trim contrib rts rep =
+    apiSingle REST "statuses/user_timeline" methodGet query
+  where
+    query =
+        [ "user_id" <:> uid
+        , "screen_name" <:> name
+        , "count" <:> count
+        , "since_id" <:> sid
+        , "max_id" <:> mid
+        , "trim_user" <:> trim
+        , "contributor_details" <:> contrib
+        , "include_rts" <:> rts
+        , "exclude_replies" <:> rep
         ]
