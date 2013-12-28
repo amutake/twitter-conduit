@@ -15,7 +15,7 @@ module Web.Twitter.Stream
 import Web.Twitter.API
 import Web.Twitter.Monad
 import Web.Twitter.Types
-import Web.Twitter.Util
+import Web.Twitter.Internal.Util
 
 import qualified Data.Conduit as C
 import qualified Network.HTTP.Types as HT

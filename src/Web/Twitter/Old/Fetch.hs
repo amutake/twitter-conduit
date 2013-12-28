@@ -59,7 +59,7 @@ module Web.Twitter.Fetch
 import Web.Twitter.Types
 import Web.Twitter.Monad
 import Web.Twitter.Param
-import Web.Twitter.Util
+import Web.Twitter.Internal.Util
 import Web.Twitter.API
 
 import qualified Network.HTTP.Types as HT

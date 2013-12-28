@@ -8,7 +8,7 @@ module Web.Twitter.Param
        ) where
 
 import Web.Twitter.Types
-import Web.Twitter.Util
+import Web.Twitter.Internal.Util
 
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString.Char8 as B8

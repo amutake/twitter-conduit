@@ -19,7 +19,7 @@ import Web.Authenticate.OAuth
 
 import Web.Twitter.Internal
 import Web.Twitter.Internal.QueryBuilder
-import Web.Twitter.Util
+import Web.Twitter.Internal.Util
 
 #ifdef DEBUG
 import Data.ByteString.Char8 (unpack)

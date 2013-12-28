@@ -27,7 +27,7 @@ module Web.Twitter.API
        ) where
 
 import Web.Twitter.Monad
-import Web.Twitter.Util
+import Web.Twitter.Internal.Util
 
 import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT

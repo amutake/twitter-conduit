@@ -1,81 +1,56 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Web.Twitter.Util
-    ( sinkJSON
-    , sinkFromJSON
-    , conduitJSON
-    , conduitFromJSON
-    , showBS
-    , insertQuery
-    , fromJSON'
-    , eitherDecodeWith
-    , encodeWith
-    , ($=+)
+    ( readOAuthFromJsonFile
+    , readAccessTokenFromJsonFile
+    , saveOAuthToJsonFile
+    , saveAccessTokenToJsonFile
     ) where
 
-import Control.Exception
-import Control.Monad ((>=>))
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class
-import Data.Aeson hiding (Error)
-import Data.Aeson.Encode (fromValue)
-import qualified Data.Aeson.Types as AT
-import qualified Data.Attoparsec.Lazy as AL
+import Control.Applicative ((<$>), (<*>))
+import Data.Aeson (Value (..), (.:), toJSON)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
-import Data.Conduit
-import qualified Data.Conduit.Internal as CI
-import qualified Data.Conduit.List as CL
-import qualified Data.Conduit.Attoparsec as CA
-import Data.Data
-import Data.Text.Lazy.Encoding (encodeUtf8)
-import Data.Text.Lazy.Builder (toLazyText)
-import qualified Network.HTTP.Types as HT
-import qualified Data.Map as M
+import Data.Map (fromList)
+import System.IO (withBinaryFile, hPutStrLn, IOMode (..))
+import Web.Authenticate.OAuth (oauthConsumerKey, oauthConsumerSecret, unCredential)
 
-data TwitterError
-  = TwitterError String
-  deriving (Show, Data, Typeable)
+import Web.Twitter.Auth
+import Web.Twitter.Internal.Util
 
-instance Exception TwitterError
+readOAuthFromJsonFile :: FilePath -> IO OAuth
+readOAuthFromJsonFile path = do
+    bs <- BL.readFile path
+    either error return $ eitherDecodeWith parser bs
+  where
+    parser (Object o) = newOAuth
+        <$> o .: "consumer_key"
+        <*> o .: "consumer_secret"
+    parser v = fail $ show v
 
-sinkJSON :: MonadResource m => Consumer ByteString m Value
-sinkJSON = CA.sinkParser json
+readAccessTokenFromJsonFile :: FilePath -> IO AccessToken
+readAccessTokenFromJsonFile path = do
+    bs <- BL.readFile path
+    either error return $ eitherDecodeWith parser bs
+  where
+    parser (Object o) = newAccessToken
+        <$> o .: "oauth_token"
+        <*> o .: "oauth_token_secret"
+    parser v = fail $ show v
 
-sinkFromJSON :: (FromJSON a, MonadResource m) => Consumer ByteString m a
-sinkFromJSON = do
-  v <- sinkJSON
-  case fromJSON v of
-    AT.Error err -> lift $ monadThrow $ TwitterError err
-    AT.Success r -> return r
+saveOAuthToJsonFile :: FilePath -> OAuth -> IO ()
+saveOAuthToJsonFile path oauth = withBinaryFile path WriteMode $ \handle -> do
+    BL.hPutStr handle $ encodeWith encoder oauth
+    hPutStrLn handle ""
+  where
+    encoder oa = toJSON . fromList $ (
+        [ ("consumer_key", oauthConsumerKey oa)
+        , ("consumer_secret", oauthConsumerSecret oa)
+        ] :: [(ByteString, ByteString)])
 
-conduitJSON :: MonadResource m => Conduit ByteString m Value
-conduitJSON = CL.sequence $ sinkJSON
-
-conduitFromJSON :: (FromJSON a, MonadResource m) => Conduit ByteString m a
-conduitFromJSON = CL.sequence $ sinkFromJSON
-
-showBS :: Show a => a -> ByteString
-showBS = B8.pack . show
-
-insertQuery :: (ByteString, ByteString) -> HT.SimpleQuery -> HT.SimpleQuery
-insertQuery (key, value) = mk
-  where mk = M.toList . M.insert key value . M.fromList
-
-fromJSON' :: FromJSON a => Value -> Maybe a
-fromJSON' = AT.parseMaybe parseJSON
-
-eitherDecodeWith :: (Value -> AT.Parser a) -> BL.ByteString -> Either String a
-eitherDecodeWith parser = AL.eitherResult . AL.parse json >=> AT.parseEither parser
-
-encodeWith :: (a -> Value) -> a -> BL.ByteString
-encodeWith enc = encodeUtf8 . toLazyText . fromValue . enc
-
-($=+) :: MonadIO m
-      => CI.ResumableSource m a
-      -> CI.Conduit a m o
-      -> m (CI.ResumableSource m o)
-rsrc $=+ cndt = do
-  (src, finalizer) <- unwrapResumable rsrc
-  return $ CI.ResumableSource (src $= cndt) finalizer
+saveAccessTokenToJsonFile :: FilePath -> AccessToken -> IO ()
+saveAccessTokenToJsonFile path cred = withBinaryFile path WriteMode $ \handle -> do
+    BL.hPutStr handle $ encodeWith encoder cred
+    hPutStrLn handle ""
+  where
+    encoder = toJSON . fromList . unCredential
