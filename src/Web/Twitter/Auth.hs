@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Web.Twitter.Auth
     ( Auth (..)
@@ -6,14 +6,19 @@ module Web.Twitter.Auth
     , Credential
     , newOAuth
     , newCredential
-    , getCredential
-    , getCredentialIO
+    , authorize
+    , authorizeIO
+    , getOAuthFromJsonFile
+    , getCredentialFromJsonFile
     ) where
 
+import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Trans (lift)
-import Data.ByteString
-import Data.Conduit
-import Network.HTTP.Conduit
+import Data.Aeson (Value (..), (.:))
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as BL
+import Data.Conduit (MonadResource, MonadBaseControl, runResourceT)
+import Network.HTTP.Conduit (withManager)
 import Web.Authenticate.OAuth hiding (newOAuth)
 
 import Web.Twitter.Util
@@ -33,19 +38,39 @@ newOAuth key secret = def
     , oauthConsumerSecret = secret
     }
 
-getCredential :: (MonadResource m, MonadBaseControl IO m)
+authorize :: (MonadResource m, MonadBaseControl IO m)
               => OAuth
               -> (String -> m Int)
               -> m Credential
-getCredential oauth getPIN = withManager $ \man -> do
+authorize oauth getPIN = withManager $ \man -> do
     tmp <- getTemporaryCredential oauth man
     let url = authorizeUrl oauth tmp
     pin <- lift $ getPIN url
     let tmp' = injectVerifier (showBS pin) tmp
     getAccessToken oauth tmp' man
 
-getCredentialIO :: OAuth
+authorizeIO :: OAuth
                 -> (String -> IO Int)
                 -> IO Credential
-getCredentialIO oauth getPIN =
-    runResourceT $ getCredential oauth $ lift . getPIN
+authorizeIO oauth getPIN =
+    runResourceT $ authorize oauth $ lift . getPIN
+
+getOAuthFromJsonFile :: FilePath -> IO OAuth
+getOAuthFromJsonFile path = do
+    bs <- BL.readFile path
+    either error return $ eitherDecodeWith parser bs
+  where
+    parser (Object o) = newOAuth
+        <$> o .: "consumer_key"
+        <*> o .: "consumer_secret"
+    parser v = fail $ show v
+
+getCredentialFromJsonFile :: FilePath -> IO Credential
+getCredentialFromJsonFile path = do
+    bs <- BL.readFile path
+    either error return $ eitherDecodeWith parser bs
+  where
+    parser (Object o) = newCredential
+        <$> o .: "access_token"
+        <*> o .: "access_token_secret"
+    parser v = fail $ show v

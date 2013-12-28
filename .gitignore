@@ -24,3 +24,7 @@ dist/
 cabal-dev/
 .cabal-sandbox
 cabal.sandbox.config
+
+oauth_consumer.json
+access_token.json
+debug.log

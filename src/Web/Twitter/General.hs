@@ -1,7 +1,8 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, CPP #-}
 
 module Web.Twitter.General
-    ( api
+    ( ApiType (..)
+    , api
     , apiSource
     , apiSingle
     ) where
@@ -17,46 +18,80 @@ import Network.HTTP.Types
 import Web.Authenticate.OAuth
 
 import Web.Twitter.Internal
+import Web.Twitter.Internal.QueryBuilder
 import Web.Twitter.Util
+
+#ifdef DEBUG
+import Data.ByteString.Char8 (unpack)
+import Data.Conduit (($$))
+import Data.Conduit.Binary (conduitHandle, sinkHandle, sourceLbs)
+import System.IO (openBinaryFile, hClose, hPutStrLn, IOMode (..))
+#endif
 
 type ApiName = String
 type Endpoint = String
 
-endpoint :: ApiName -> Endpoint
-endpoint name = "https://api.twitter.com/1.1/" ++ name ++ ".json"
+data ApiType = REST
+             | UserStream
+
+endpoint :: ApiType -> ApiName -> Endpoint
+endpoint REST name = "https://api.twitter.com/1.1/" ++ name ++ ".json"
+endpoint UserStream name = "https://userstream.twitter.com/1.1/" ++ name ++ ".json"
 
 api :: (MonadResource m)
-    => ApiName -- ^ API resource name
+    => ApiType -- ^ API Type
+    -> ApiName -- ^ API Name
     -> Method -- ^ HTTP request method
     -> Query -- ^ Query
     -> TwitterT m (Response (ResumableSource (TwitterT m) ByteString))
-api name mth query = do
+api ty name mth query = do
     env <- ask
     let oauth = twitterOAuth . twitterAuth $ env
         cred = twitterCredential . twitterAuth $ env
         man = twitterManager env
-    req <- liftIO $ parseUrl $ endpoint name
+    req <- liftIO $ parseUrl $ endpoint ty name
     signed <- signOAuth oauth cred req
         { method = mth
-        , queryString = renderQuery True query
+        , queryString = renderQuery' query
         }
     http signed man
 
 apiSource :: (MonadResource m, FromJSON a)
-          => ApiName
+          => ApiType
+          -> ApiName
           -> Method
           -> Query
           -> TwitterT m (ResumableSource (TwitterT m) a)
-apiSource name mth query = do
-    res <- responseBody <$> api name mth query
+apiSource ty name mth query = do
+    res <- responseBody <$> api ty name mth query
+#ifdef DEBUG
+    handle <- liftIO $ openBinaryFile "debug.log" AppendMode
+    liftIO $ hPutStrLn handle $ endpoint ty name ++ unpack (renderQuery' query)
+    res' <- res $=+ conduitHandle handle
+    liftIO $ hPutStrLn handle ""
+    liftIO $ hClose handle
+    res' $=+ conduitFromJSON
+#else
     res $=+ conduitFromJSON
+#endif
 
 apiSingle :: (MonadResource m, FromJSON a)
-          => ApiName
+          => ApiType
+          -> ApiName
           -> Method
           -> Query
           -> TwitterT m a
-apiSingle name mth query = do
-    res <- api name mth query >>= lbsResponse
+apiSingle ty name mth query = do
+    liftIO $ putStrLn "start"
+    res <- api ty name mth query >>= lbsResponse
+    liftIO $ putStrLn "ba"
     let body = responseBody res
+    liftIO $ putStrLn "hoge"
+#ifdef DEBUG
+    handle <- liftIO $ openBinaryFile "debug.log" AppendMode
+    liftIO $ hPutStrLn handle $ endpoint ty name ++ unpack (renderQuery' query)
+    sourceLbs body $$ sinkHandle handle
+    liftIO $ hPutStrLn handle ""
+    liftIO $ hClose handle
+#endif
     either (monadThrow . ParseError) return $ eitherDecode body

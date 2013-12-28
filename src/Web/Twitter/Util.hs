@@ -1,24 +1,27 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE CPP #-}
 
 module Web.Twitter.Util
-       ( sinkJSON
-       , sinkFromJSON
-       , conduitJSON
-       , conduitFromJSON
-       , showBS
-       , insertQuery
-       , fromJSON'
-       , ($=+)
-       ) where
+    ( sinkJSON
+    , sinkFromJSON
+    , conduitJSON
+    , conduitFromJSON
+    , showBS
+    , insertQuery
+    , fromJSON'
+    , eitherDecodeWith
+    , ($=+)
+    ) where
 
 import Control.Exception
+import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AT
+import qualified Data.Attoparsec.Lazy as AL
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Lazy as BL
 import Data.Conduit
 import qualified Data.Conduit.Internal as CI
 import qualified Data.Conduit.List as CL
@@ -33,29 +36,17 @@ data TwitterError
 
 instance Exception TwitterError
 
-#if MIN_VERSION_conduit(1,0,0)
 sinkJSON :: MonadResource m => Consumer ByteString m Value
-#else
-sinkJSON :: MonadResource m => GLSink ByteString m Value
-#endif
 sinkJSON = CA.sinkParser json
 
-#if MIN_VERSION_conduit(1,0,0)
 sinkFromJSON :: (FromJSON a, MonadResource m) => Consumer ByteString m a
-#else
-sinkFromJSON :: (FromJSON a, MonadResource m) => GLSink ByteString m a
-#endif
 sinkFromJSON = do
   v <- sinkJSON
   case fromJSON v of
     AT.Error err -> lift $ monadThrow $ TwitterError err
     AT.Success r -> return r
 
-#if MIN_VERSION_conduit(1,0,0)
 conduitJSON :: MonadResource m => Conduit ByteString m Value
-#else
-conduitJSON :: MonadResource m => GLInfConduit ByteString m Value
-#endif
 conduitJSON = CL.sequence $ sinkJSON
 
 conduitFromJSON :: (FromJSON a, MonadResource m) => Conduit ByteString m a
@@ -70,6 +61,9 @@ insertQuery (key, value) = mk
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = AT.parseMaybe parseJSON
+
+eitherDecodeWith :: (Value -> AT.Parser a) -> BL.ByteString -> Either String a
+eitherDecodeWith parser = AL.eitherResult . AL.parse json >=> AT.parseEither parser
 
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
