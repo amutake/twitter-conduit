@@ -81,3 +81,24 @@ homeTimeline count sid mid trim rep contrib rts =
         , "contributor_details" <:> contrib
         , "include_rts" <:> rts
         ]
+
+-- | https://dev.twitter.com/docs/api/1.1/get/statuses/retweets_of_me> 2013-03-13 14:33
+retweetsOfMe :: MonadResource m
+             => Maybe Int -- ^ count (optional)
+             -> Maybe StatusId -- ^ since_id (optional)
+             -> Maybe StatusId -- ^ max_id (optional)
+             -> Maybe Bool -- ^ trim_user (optional)
+             -> Maybe Bool -- ^ include_entities (optional)
+             -> Maybe Bool -- ^ include_user_entities (optional)
+             -> TwitterT m [Status]
+retweetsOfMe count sid mid trim ent userent =
+    apiSingle REST "statuses/retweets_of_me" methodGet query
+  where
+    query =
+        [ "count" <:> count
+        , "since_id" <:> sid
+        , "max_id" <:> mid
+        , "trim_user" <:> trim
+        , "include_entities" <:> ent
+        , "include_user_entities" <:> userent
+        ]
