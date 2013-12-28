@@ -29,6 +29,9 @@ library
                        Web.Twitter.Streaming.User
                        Web.Twitter.Util
   other-modules:       Web.Twitter.General
+                       Web.Twitter.Internal.Query
+                       Web.Twitter.Internal.Types
+                       Web.Twitter.Internal.Util
   build-depends:       base ==4.*
                      , transformers ==0.3.*
                      , mtl
@@ -53,3 +56,18 @@ library
   default-language:    Haskell2010
   if flag(debug)
     cpp-options:       -DDEBUG
+
+test-suite test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             test.hs
+  build-depends:       base
+                     , hspec
+                     , transformers
+                     , mtl
+                     , random
+                     , text
+                     , lifted-base
+                     , twitter-conduit
+  ghc-options:         -Wall
+  default-language:    Haskell2010

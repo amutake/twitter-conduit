@@ -28,3 +28,5 @@ cabal.sandbox.config
 oauth_consumer.json
 access_token.json
 debug.log
+haskell_test_1.json
+haskell_test_2.json
