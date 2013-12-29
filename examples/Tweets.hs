@@ -1,5 +1,6 @@
 module Tweets where
 
+import Control.Exception.Lifted
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text.IO as T
 
@@ -23,8 +24,9 @@ main = do
         liftIO $ print sres
 
         liftIO $ putStrLn "---- retweet ----"
-        rres <- retweet sid Nothing
-        liftIO $ print rres
+        flip catch continue $ do
+            rres <- retweet sid Nothing
+            liftIO $ print rres
 
         liftIO $ putStrLn "---- retweets ----"
         rsres <- retweets sid Nothing Nothing
@@ -33,3 +35,8 @@ main = do
         liftIO $ putStrLn "---- destroy ----"
         dres <- destroy sid Nothing
         liftIO $ print dres
+  where
+    continue :: SomeException -> Twitter ()
+    continue exc = do
+        liftIO $ print exc
+        liftIO $ putStrLn "An error occured, but continue."
