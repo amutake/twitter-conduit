@@ -8,6 +8,7 @@ module Web.Twitter.Internal.Query
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
+import Data.Int (Int64)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
@@ -45,6 +46,9 @@ instance QueryValue Integer where
     qv = return . BS.pack . show
 
 instance QueryValue Int where
+    qv = return . BS.pack . show
+
+instance QueryValue Int64 where
     qv = return . BS.pack . show
 
 instance QueryValue Double where

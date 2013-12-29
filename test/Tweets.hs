@@ -45,4 +45,4 @@ runTweetsTests oauth token1 token2 = do
                 withRetweetFrom oauth token2 (statusId status) $ const $ do
                     user2 <- runTwitter oauth token2 $ verifyCredentials Nothing Nothing
                     rts <- runTwitter oauth token1 $ retweeters (statusId status) Nothing Nothing
-                    idsIds rts `shouldBe` [userId user2]
+                    idsIds rts `shouldBe` Ints [userId user2]
