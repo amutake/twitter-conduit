@@ -16,7 +16,7 @@ retweets :: (MonadResource m, MonadBaseControl IO m)
          -> Maybe Int -- ^ count (optional)
          -> Maybe Bool -- ^ trim_user (optional)
          -> TwitterT m [Status]
-retweets sid count trim = apiSingle REST ("statuses/retweets/" ++ show sid) methodGet query
+retweets sid count trim = rest REST ("statuses/retweets/" ++ show sid) methodGet query
   where
     query =
         [ "count" <:> count
@@ -30,7 +30,7 @@ showStatus :: (MonadResource m, MonadBaseControl IO m)
            -> Maybe Bool -- ^ include_my_retweet (optional)
            -> Maybe Bool -- ^ include_entities (optional)
            -> TwitterT m Status
-showStatus sid trim mine ent = apiSingle REST "statuses/show" methodGet query
+showStatus sid trim mine ent = rest REST "statuses/show" methodGet query
   where
     query =
         [ "id" <:> sid
@@ -44,7 +44,7 @@ destroy :: (MonadResource m, MonadBaseControl IO m)
         => StatusId -- ^ id
         -> Maybe Bool -- ^ trim_user (optional)
         -> TwitterT m Status
-destroy sid trim = apiSingle REST ("statuses/destroy/" ++ show sid) methodPost query
+destroy sid trim = rest REST ("statuses/destroy/" ++ show sid) methodPost query
   where
     query =
         [ "trim_user" <:> trim
@@ -60,7 +60,7 @@ update :: (MonadResource m, MonadBaseControl IO m)
        -> Maybe Bool -- ^ display_coordinates (optional)
        -> Maybe Bool -- ^ trim_user (optional)
        -> TwitterT m Status
-update status sid lat long pid disp trim = apiSingle REST "statuses/update" methodPost query
+update status sid lat long pid disp trim = rest REST "statuses/update" methodPost query
   where
     query =
         [ "status" <:> status
@@ -77,7 +77,7 @@ retweet :: (MonadResource m, MonadBaseControl IO m)
         => StatusId -- ^ id
         -> Maybe Bool -- ^ trim_user (optional)
         -> TwitterT m Status
-retweet sid trim = apiSingle REST ("statuses/retweet/" ++ show sid) methodPost query
+retweet sid trim = rest REST ("statuses/retweet/" ++ show sid) methodPost query
   where
     query =
         [ "trim_user" <:> trim
@@ -89,7 +89,7 @@ retweeters :: (MonadResource m, MonadBaseControl IO m)
            -> Maybe StatusId -- ^ cursor (semi-optional)
            -> Maybe Bool -- ^ stringify_ids (optional)
            -> TwitterT m Ids
-retweeters sid cursor str = apiSingle REST "statuses/retweeters/ids" methodGet query
+retweeters sid cursor str = rest REST "statuses/retweeters/ids" methodGet query
   where
     query =
         [ "id" <:> sid

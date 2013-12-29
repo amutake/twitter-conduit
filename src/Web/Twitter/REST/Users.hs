@@ -13,7 +13,7 @@ verifyCredentials :: (MonadResource m, MonadBaseControl IO m)
                   => Maybe Bool -- ^ include_entities (optional)
                   -> Maybe Bool -- ^ skip_status (optional)
                   -> TwitterT m User
-verifyCredentials ent skip = apiSingle REST "account/verify_credentials" methodGet query
+verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet query
   where
     query =
         [ "include_entities" <:> ent

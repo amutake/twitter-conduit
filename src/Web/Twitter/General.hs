@@ -3,18 +3,19 @@
 module Web.Twitter.General
     ( ApiType (..)
     , api
-    , apiSource
-    , apiSingle
+    , stream
+    , rest
     ) where
 
 import Control.Applicative ((<$>))
 import Control.Exception.Lifted (catch)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
-import Data.Aeson (FromJSON, eitherDecode, Value (..), (.:))
+import Data.Aeson (FromJSON, Value (..), (.:))
 import Data.ByteString (ByteString)
 import Data.CaseInsensitive (mk)
-import Data.Conduit (MonadResource, ResumableSource, MonadThrow (..), MonadBaseControl)
+import Data.Conduit (MonadResource, ResumableSource, MonadThrow (..), MonadBaseControl, ($$+-))
+import qualified Data.Conduit.List as CL
 import Network.HTTP.Conduit
 import Network.HTTP.Types
 import Web.Authenticate.OAuth
@@ -25,10 +26,10 @@ import Web.Twitter.Internal.Types
 import Web.Twitter.Internal.Util
 
 #ifdef DEBUG
-import Data.ByteString.Char8 (unpack)
-import Data.Conduit (($$))
-import Data.Conduit.Binary (conduitHandle, sinkHandle, sourceLbs)
-import System.IO (openBinaryFile, hClose, hPutStrLn, IOMode (..))
+import Control.Exception (try, SomeException)
+import qualified Data.ByteString.Char8 as BSC
+import Data.Conduit (Conduit, yield, awaitForever, bracketP)
+import qualified System.IO as IO
 #endif
 
 type ApiName = String
@@ -71,39 +72,45 @@ rethrowException exc@(StatusCodeException _ headers _) =
     errors v = fail $ show v
 rethrowException exc = monadThrow exc
 
-apiSource :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
+stream :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
           => ApiType
           -> ApiName
           -> Method
           -> Query
           -> TwitterT m (ResumableSource (TwitterT m) a)
-apiSource ty name mth query = do
+stream ty name mth query = do
     res <- responseBody <$> api ty name mth query
 #ifdef DEBUG
-    handle <- liftIO $ openBinaryFile "debug.log" AppendMode
-    liftIO $ hPutStrLn handle $ endpoint ty name ++ unpack (renderQuery' query)
-    res' <- res $=+ conduitHandle handle
-    liftIO $ hPutStrLn handle ""
-    liftIO $ hClose handle
+    res' <- res $=+ conduitLog (endpoint ty name ++ BSC.unpack (renderQuery' query))
     res' $=+ conduitFromJSON
 #else
     res $=+ conduitFromJSON
 #endif
 
-apiSingle :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
-          => ApiType
-          -> ApiName
-          -> Method
-          -> Query
-          -> TwitterT m a
-apiSingle ty name mth query = do
-    res <- api ty name mth query >>= lbsResponse
-    let body = responseBody res
 #ifdef DEBUG
-    handle <- liftIO $ openBinaryFile "debug.log" AppendMode
-    liftIO $ hPutStrLn handle $ endpoint ty name ++ unpack (renderQuery' query)
-    sourceLbs body $$ sinkHandle handle
-    liftIO $ hPutStrLn handle ""
-    liftIO $ hClose handle
+conduitLog :: MonadResource m => String -> Conduit ByteString m ByteString
+conduitLog url = bracketP (try $ IO.openBinaryFile "debug.log" IO.AppendMode) release go
+  where
+    release :: Either SomeException IO.Handle -> IO ()
+    release (Left _) = return ()
+    release (Right h) = do
+        liftIO $ BSC.hPutStrLn h ""
+        IO.hClose h
+
+    go :: MonadResource m => Either SomeException IO.Handle -> Conduit ByteString m ByteString
+    go (Left _) = awaitForever yield
+    go (Right h) = do
+        liftIO $ IO.hPutStrLn h url
+        awaitForever $ \bs -> liftIO (BSC.hPut h bs) >> yield bs
 #endif
-    either (monadThrow . JsonParseError) return $ eitherDecode body
+
+rest :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
+     => ApiType
+     -> ApiName
+     -> Method
+     -> Query
+     -> TwitterT m a
+rest ty name mth query = do
+    src <- stream ty name mth query
+    ma <- src $$+- CL.head
+    maybe (monadThrow $ JsonParseError "nothing parsed") return ma

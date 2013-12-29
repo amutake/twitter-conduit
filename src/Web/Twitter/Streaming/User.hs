@@ -12,4 +12,4 @@ import Web.Twitter.Types
 -- | <https://dev.twitter.com/docs/api/1.1/get/user> 2013-08-26 14:13
 user :: (MonadResource m, MonadBaseControl IO m)
      => TwitterT m (ResumableSource (TwitterT m) UserStream)
-user = apiSource UserStream "user" methodGet []
+user = stream UserStream "user" methodGet []
