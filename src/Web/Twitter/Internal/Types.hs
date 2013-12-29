@@ -22,6 +22,7 @@ import Web.Authenticate.OAuth (Credential, OAuth)
 data TwitterException
     = JsonParseError String
     | TwitterErrors [TwitterErrorResponse]
+    | UnknownTwitterError Text
     deriving (Show, Eq, Typeable)
 
 instance Exception TwitterException

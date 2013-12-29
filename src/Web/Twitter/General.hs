@@ -7,7 +7,7 @@ module Web.Twitter.General
     , rest
     ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<|>))
 import Control.Exception.Lifted (catch)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
@@ -26,7 +26,7 @@ import Web.Twitter.Internal.Types
 import Web.Twitter.Internal.Util
 
 #ifdef DEBUG
-import Control.Exception (try, SomeException)
+import Control.Exception (try, SomeException, throwIO)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Conduit (Conduit, yield, awaitForever, bracketP)
 import qualified System.IO as IO
@@ -58,18 +58,34 @@ api ty name mth query = do
         { method = mth
         , queryString = renderQuery' query
         }
+#ifdef DEBUG
+    http signed man `catch` logger `catch` rethrowException
+#else
     http signed man `catch` rethrowException
+#endif
+#ifdef DEBUG
+  where
+    logger :: MonadResource m => SomeException -> TwitterT m a
+    logger exc = liftIO $ IO.withFile "debug.log" IO.AppendMode $ \h -> do
+        IO.hPutStrLn h (endpoint ty name ++ BSC.unpack (renderQuery' query))
+        IO.hPutStrLn h $ show exc
+        throwIO exc
+#endif
 
 rethrowException :: MonadThrow m => HttpException -> TwitterT m a
 rethrowException exc@(StatusCodeException _ headers _) =
     maybe (monadThrow exc) (rethrow . decodeBody) $ lookup (mk "X-Response-Body-Start") headers
   where
-    rethrow = either
-        (monadThrow . JsonParseError)
-        (monadThrow . TwitterErrors . map fromRaw)
+    rethrow = either (const $ monadThrow exc) monadThrow
     decodeBody = eitherDecodeStrictWith errors
-    errors (Object o) = o .: "errors"
+    errors (Object o) = TwitterErrors
+        <$> (map fromRaw
+            <$> o .: "errors"
+            )
+        <|> UnknownTwitterError
+        <$> o .: "errors"
     errors v = fail $ show v
+
 rethrowException exc = monadThrow exc
 
 stream :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
