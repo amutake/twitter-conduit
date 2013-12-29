@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
-
 module Web.Twitter.Core
     ( TwitterT
     , runTwitterT

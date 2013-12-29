@@ -1,8 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Twitter.REST.Timelines where
 
-import Data.Conduit (MonadResource)
+import Data.Conduit (MonadResource, MonadBaseControl)
 import Data.Text (Text)
 import Network.HTTP.Types (methodGet)
 
@@ -12,7 +10,7 @@ import Web.Twitter.Internal.Query
 import Web.Twitter.Types
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline> 2013-06-20 13:39
-mentionsTimeline :: MonadResource m
+mentionsTimeline :: (MonadResource m, MonadBaseControl IO m)
                  => Maybe Int -- ^ count (optional)
                  -> Maybe StatusId -- ^ since_id (optional)
                  -> Maybe StatusId -- ^ max_id (optional)
@@ -33,7 +31,7 @@ mentionsTimeline count sid mid trim contrib inc =
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline> 2013-03-07 09:38
-userTimeline :: MonadResource m
+userTimeline :: (MonadResource m, MonadBaseControl IO m)
              => Maybe UserId -- ^ user_id (optional)
              -> Maybe Text -- ^ screen_name (optional)
              -> Maybe Int -- ^ count (optional)
@@ -60,7 +58,7 @@ userTimeline uid name count sid mid trim rep contrib rts =
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline> 2012-09-05 10:06
-homeTimeline :: MonadResource m
+homeTimeline :: (MonadResource m, MonadBaseControl IO m)
              => Maybe Int -- ^ count (optional)
              -> Maybe StatusId -- ^ since_id (optional)
              -> Maybe StatusId -- ^ max_id (optional)
@@ -83,7 +81,7 @@ homeTimeline count sid mid trim rep contrib rts =
         ]
 
 -- | https://dev.twitter.com/docs/api/1.1/get/statuses/retweets_of_me> 2013-03-13 14:33
-retweetsOfMe :: MonadResource m
+retweetsOfMe :: (MonadResource m, MonadBaseControl IO m)
              => Maybe Int -- ^ count (optional)
              -> Maybe StatusId -- ^ since_id (optional)
              -> Maybe StatusId -- ^ max_id (optional)

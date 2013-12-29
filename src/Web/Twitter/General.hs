@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, CPP #-}
+{-# LANGUAGE CPP #-}
 
 module Web.Twitter.General
     ( ApiType (..)
@@ -8,11 +8,13 @@ module Web.Twitter.General
     ) where
 
 import Control.Applicative ((<$>))
+import Control.Exception.Lifted (catch)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
-import Data.Aeson (FromJSON, eitherDecode)
+import Data.Aeson (FromJSON, eitherDecode, Value (..), (.:))
 import Data.ByteString (ByteString)
-import Data.Conduit (MonadResource, ResumableSource, monadThrow)
+import Data.CaseInsensitive (mk)
+import Data.Conduit (MonadResource, ResumableSource, MonadThrow (..), MonadBaseControl)
 import Network.HTTP.Conduit
 import Network.HTTP.Types
 import Web.Authenticate.OAuth
@@ -39,7 +41,7 @@ endpoint :: ApiType -> ApiName -> Endpoint
 endpoint REST name = "https://api.twitter.com/1.1/" ++ name ++ ".json"
 endpoint UserStream name = "https://userstream.twitter.com/1.1/" ++ name ++ ".json"
 
-api :: (MonadResource m)
+api :: (MonadResource m, MonadBaseControl IO m)
     => ApiType -- ^ API Type
     -> ApiName -- ^ API Name
     -> Method -- ^ HTTP request method
@@ -55,9 +57,21 @@ api ty name mth query = do
         { method = mth
         , queryString = renderQuery' query
         }
-    http signed man
+    http signed man `catch` rethrowException
 
-apiSource :: (MonadResource m, FromJSON a)
+rethrowException :: MonadThrow m => HttpException -> TwitterT m a
+rethrowException exc@(StatusCodeException _ headers _) =
+    maybe (monadThrow exc) (rethrow . decodeBody) $ lookup (mk "X-Response-Body-Start") headers
+  where
+    rethrow = either
+        (monadThrow . JsonParseError)
+        (monadThrow . TwitterErrors . map fromRaw)
+    decodeBody = eitherDecodeStrictWith errors
+    errors (Object o) = o .: "errors"
+    errors v = fail $ show v
+rethrowException exc = monadThrow exc
+
+apiSource :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
           => ApiType
           -> ApiName
           -> Method
@@ -76,7 +90,7 @@ apiSource ty name mth query = do
     res $=+ conduitFromJSON
 #endif
 
-apiSingle :: (MonadResource m, FromJSON a)
+apiSingle :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
           => ApiType
           -> ApiName
           -> Method
@@ -92,4 +106,4 @@ apiSingle ty name mth query = do
     liftIO $ hPutStrLn handle ""
     liftIO $ hClose handle
 #endif
-    either (monadThrow . ParseError) return $ eitherDecode body
+    either (monadThrow . JsonParseError) return $ eitherDecode body

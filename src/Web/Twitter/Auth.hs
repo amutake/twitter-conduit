@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
-
 module Web.Twitter.Auth
     ( OAuth
     , AccessToken

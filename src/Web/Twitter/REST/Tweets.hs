@@ -1,9 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Twitter.REST.Tweets where
 
 import Data.ByteString (ByteString)
-import Data.Conduit (MonadResource)
+import Data.Conduit (MonadResource, MonadBaseControl)
 import Data.Text (Text)
 import Network.HTTP.Types (methodGet, methodPost)
 
@@ -13,7 +11,7 @@ import Web.Twitter.Internal.Query
 import Web.Twitter.Types
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/retweets/%3Aid> 2013-08-28 06:59
-retweets :: MonadResource m
+retweets :: (MonadResource m, MonadBaseControl IO m)
          => StatusId -- ^ id
          -> Maybe Int -- ^ count (optional)
          -> Maybe Bool -- ^ trim_user (optional)
@@ -26,7 +24,7 @@ retweets sid count trim = apiSingle REST ("statuses/retweets/" ++ show sid) meth
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/show/%3Aid> 2013-03-07 09:37
-showStatus :: MonadResource m
+showStatus :: (MonadResource m, MonadBaseControl IO m)
            => StatusId -- ^ id
            -> Maybe Bool -- ^ trim_user (optional)
            -> Maybe Bool -- ^ include_my_retweet (optional)
@@ -42,7 +40,7 @@ showStatus sid trim mine ent = apiSingle REST "statuses/show" methodGet query
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/post/statuses/destroy/%3Aid> 2013-01-29 08:36
-destroy :: MonadResource m
+destroy :: (MonadResource m, MonadBaseControl IO m)
         => StatusId -- ^ id
         -> Maybe Bool -- ^ trim_user (optional)
         -> TwitterT m Status
@@ -53,7 +51,7 @@ destroy sid trim = apiSingle REST ("statuses/destroy/" ++ show sid) methodPost q
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/post/statuses/update> 2012-11-20 07:24
-update :: MonadResource m
+update :: (MonadResource m, MonadBaseControl IO m)
        => Text -- ^ status
        -> Maybe StatusId -- ^ in_reply_to_status_id (optional)
        -> Maybe Double -- ^ lat (optional)
@@ -75,7 +73,7 @@ update status sid lat long pid disp trim = apiSingle REST "statuses/update" meth
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/post/statuses/retweet/%3Aid> 2012-12-03 14:06
-retweet :: MonadResource m
+retweet :: (MonadResource m, MonadBaseControl IO m)
         => StatusId -- ^ id
         -> Maybe Bool -- ^ trim_user (optional)
         -> TwitterT m Status
@@ -86,7 +84,7 @@ retweet sid trim = apiSingle REST ("statuses/retweet/" ++ show sid) methodPost q
         ]
 
 -- | <https://dev.twitter.com/docs/api/1.1/get/statuses/retweeters/ids> 2013-05-07 09:47
-retweeters :: MonadResource m
+retweeters :: (MonadResource m, MonadBaseControl IO m)
            => StatusId -- ^ id
            -> Maybe StatusId -- ^ cursor (semi-optional)
            -> Maybe Bool -- ^ stringify_ids (optional)

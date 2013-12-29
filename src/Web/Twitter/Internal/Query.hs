@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances, RankNTypes, GADTs #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Web.Twitter.Internal.Query
     ( renderQuery'

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Web.Twitter.Util
     ( readOAuthFromJsonFile
     , readAccessTokenFromJsonFile

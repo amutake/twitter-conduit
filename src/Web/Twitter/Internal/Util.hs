@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module Web.Twitter.Internal.Util
     ( sinkJSON
     , sinkFromJSON
@@ -9,18 +7,18 @@ module Web.Twitter.Internal.Util
     , insertQuery
     , fromJSON'
     , eitherDecodeWith
+    , eitherDecodeStrictWith
     , encodeWith
     , ($=+)
     ) where
 
-import Control.Exception
 import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class
 import Data.Aeson hiding (Error)
 import Data.Aeson.Encode (fromValue)
 import qualified Data.Aeson.Types as AT
 import qualified Data.Attoparsec.Lazy as AL
+import qualified Data.Attoparsec as AS
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
@@ -28,17 +26,12 @@ import Data.Conduit
 import qualified Data.Conduit.Internal as CI
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Attoparsec as CA
-import Data.Data
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import Data.Text.Lazy.Builder (toLazyText)
 import qualified Network.HTTP.Types as HT
 import qualified Data.Map as M
 
-data TwitterError
-  = TwitterError String
-  deriving (Show, Data, Typeable)
-
-instance Exception TwitterError
+import Web.Twitter.Internal.Types
 
 sinkJSON :: MonadResource m => Consumer ByteString m Value
 sinkJSON = CA.sinkParser json
@@ -47,7 +40,7 @@ sinkFromJSON :: (FromJSON a, MonadResource m) => Consumer ByteString m a
 sinkFromJSON = do
   v <- sinkJSON
   case fromJSON v of
-    AT.Error err -> lift $ monadThrow $ TwitterError err
+    AT.Error err -> monadThrow $ JsonParseError err
     AT.Success r -> return r
 
 conduitJSON :: MonadResource m => Conduit ByteString m Value
@@ -68,6 +61,9 @@ fromJSON' = AT.parseMaybe parseJSON
 
 eitherDecodeWith :: (Value -> AT.Parser a) -> BL.ByteString -> Either String a
 eitherDecodeWith parser = AL.eitherResult . AL.parse json >=> AT.parseEither parser
+
+eitherDecodeStrictWith :: (Value -> AT.Parser a) -> ByteString -> Either String a
+eitherDecodeStrictWith parser = AS.eitherResult . AS.parse json' >=> AT.parseEither parser
 
 encodeWith :: (a -> Value) -> a -> BL.ByteString
 encodeWith enc = encodeUtf8 . toLazyText . fromValue . enc
