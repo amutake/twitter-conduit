@@ -15,7 +15,9 @@ runTimelinesTests oauth token1 token2 = do
     describe "statuses/mentions_timeline" $ do
         it "mentions_timeline" $ do
             text <- getRandomText
-            withTweetFrom oauth token1 ("@haskell_test_2 " <> text) $ \status -> do
+            test2 <- runTwitter oauth token2 $ verifyCredentials Nothing Nothing
+            let text' = "@" <> userScreenName test2 <> " " <> text
+            withTweetFrom oauth token1 text' $ \status -> do
                 mentions <- runTwitter oauth token2 $
                     mentionsTimeline Nothing Nothing Nothing Nothing Nothing Nothing
                 mentions `shouldContain` [status]
@@ -42,4 +44,4 @@ runTimelinesTests oauth token1 token2 = do
                 withRetweetFrom oauth token2 (statusId status) $ const $ do
                     rts <- runTwitter oauth token1 $
                         retweetsOfMe Nothing Nothing Nothing Nothing Nothing Nothing
-                    map statusId rts `shouldBe` [statusId status]
+                    map statusId rts `shouldContain` [statusId status]
