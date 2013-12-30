@@ -16,3 +16,7 @@ main = do
         liftIO $ putStrLn "---- GET settings ----"
         ss <- getAccountSettings
         liftIO $ print ss
+
+        liftIO $ putStrLn "---- POST settings ---"
+        ss' <- updateAccountSettings (Just 1) (Just True) (Just 22) (Just 6) (Just "Tokyo") (Just "ja")
+        liftIO $ print ss'

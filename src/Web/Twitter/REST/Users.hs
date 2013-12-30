@@ -1,10 +1,12 @@
 module Web.Twitter.REST.Users
     ( verifyCredentials
     , getAccountSettings
+    , updateAccountSettings
     ) where
 
 import Data.Conduit (MonadResource, MonadBaseControl)
-import Network.HTTP.Types (methodGet)
+import Data.Text (Text)
+import Network.HTTP.Types (methodGet, methodPost)
 
 import Web.Twitter.Core
 import Web.Twitter.General
@@ -27,3 +29,24 @@ verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet qu
 getAccountSettings :: (MonadResource m, MonadBaseControl IO m)
                    => TwitterT m Account
 getAccountSettings = rest REST "account/settings" methodGet []
+
+-- | <https://dev.twitter.com/docs/api/1.1/post/account/settings> 2012-10-15 06:07
+updateAccountSettings :: (MonadResource m, MonadBaseControl IO m)
+                      => Maybe Int -- ^ trend_location_woeid (optional)
+                      -> Maybe Bool -- ^ sleep_time_enabled (optional)
+                      -> Maybe Int -- ^ start_sleep_time (optional) 00-23
+                      -> Maybe Int -- ^ end_sleep_time (optional) 00 - 23
+                      -> Maybe Text -- ^ time_zone (optional) The timezone must be one of the Rails TimeZone <http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html> names.
+                      -> Maybe LanguageCode -- ^ lang (optional) The language must be specified by the appropriate two letter ISO 639-1 representation.
+                      -> TwitterT m Account
+updateAccountSettings woe sleep start end tz lang
+    = rest REST "account/settings" methodPost query
+  where
+    query =
+        [ "trend_location_woeid" <:> woe
+        , "sleep_time_enabled" <:> sleep
+        , "start_sleep_time" <:> start
+        , "end_sleep_time" <:> end
+        , "time_zone" <:> tz
+        , "lang" <:> lang
+        ]
