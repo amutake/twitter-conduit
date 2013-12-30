@@ -52,6 +52,7 @@ library
                      , attoparsec-conduit >=1.0
                      , data-default
                      , bytestring
+                     , base64-bytestring
                      , text
                      , containers
                      , case-insensitive

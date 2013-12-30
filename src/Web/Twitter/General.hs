@@ -2,7 +2,6 @@
 
 module Web.Twitter.General
     ( ApiType (..)
-    , api
     , stream
     , rest
     ) where
@@ -46,13 +45,13 @@ endpoint Stream name = "https://stream.twitter.com/1.1/" ++ name ++ ".json"
 endpoint UserStream name = "https://userstream.twitter.com/1.1/" ++ name ++ ".json"
 endpoint SiteStream name = "https://sitestream.twitter.com/1.1/" ++ name ++ ".json"
 
-api :: (MonadResource m, MonadBaseControl IO m)
-    => ApiType -- ^ API Type
-    -> ApiName -- ^ API Name
-    -> Method -- ^ HTTP request method
-    -> Query -- ^ Query
-    -> TwitterT m (Response (ResumableSource (TwitterT m) ByteString))
-api ty name mth query = do
+stream :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
+       => ApiType -- ^ API Type
+       -> ApiName -- ^ API Name
+       -> Method -- ^ HTTP request method
+       -> Query -- ^ Query
+       -> TwitterT m (ResumableSource (TwitterT m) a)
+stream ty name mth query = do
     env <- ask
     let oauth = twitterOAuth env
         token = twitterAccessToken env
@@ -63,17 +62,37 @@ api ty name mth query = do
         , queryString = renderQuery' query
         }
 #ifdef DEBUG
-    http signed man `catch` logger `catch` rethrowException
-#else
-    http signed man `catch` rethrowException
-#endif
-#ifdef DEBUG
+    res <- http signed man `catch` logger signed `catch` rethrowException
+    res' <- responseBody res $=+ conduitLog signed
+    res' $=+ conduitFromJSON
   where
-    logger :: MonadResource m => SomeException -> TwitterT m a
-    logger exc = liftIO $ IO.withFile "debug.log" IO.AppendMode $ \h -> do
-        IO.hPutStrLn h (endpoint ty name ++ BSC.unpack (renderQuery' query))
+    logger :: MonadResource m => Request -> SomeException -> TwitterT m a
+    logger req exc = liftIO $ IO.withFile "debug.log" IO.AppendMode $ \h -> do
+        IO.hPutStr h $ show req
         IO.hPutStrLn h $ show exc
+        IO.hPutStrLn h ""
         throwIO exc
+#else
+    res <- http signed man `catch` rethrowException
+    responseBody res $=+ conduitFromJSON
+#endif
+
+#ifdef DEBUG
+conduitLog :: MonadResource m => Request -> Conduit ByteString m ByteString
+conduitLog req = bracketP (try $ IO.openBinaryFile "debug.log" IO.AppendMode) release go
+  where
+    release :: Either SomeException IO.Handle -> IO ()
+    release (Left _) = return ()
+    release (Right h) = do
+        liftIO $ BSC.hPutStrLn h ""
+        liftIO $ BSC.hPutStrLn h ""
+        IO.hClose h
+
+    go :: MonadResource m => Either SomeException IO.Handle -> Conduit ByteString m ByteString
+    go (Left _) = awaitForever yield
+    go (Right h) = do
+        liftIO $ IO.hPutStr h $ show req
+        awaitForever $ \bs -> liftIO (BSC.hPut h bs) >> yield bs
 #endif
 
 rethrowException :: MonadThrow m => HttpException -> TwitterT m a
@@ -89,40 +108,7 @@ rethrowException exc@(StatusCodeException _ headers _) =
         <|> UnknownTwitterError
         <$> o .: "errors"
     errors v = fail $ show v
-
 rethrowException exc = monadThrow exc
-
-stream :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
-          => ApiType
-          -> ApiName
-          -> Method
-          -> Query
-          -> TwitterT m (ResumableSource (TwitterT m) a)
-stream ty name mth query = do
-    res <- responseBody <$> api ty name mth query
-#ifdef DEBUG
-    res' <- res $=+ conduitLog (endpoint ty name ++ BSC.unpack (renderQuery' query))
-    res' $=+ conduitFromJSON
-#else
-    res $=+ conduitFromJSON
-#endif
-
-#ifdef DEBUG
-conduitLog :: MonadResource m => String -> Conduit ByteString m ByteString
-conduitLog url = bracketP (try $ IO.openBinaryFile "debug.log" IO.AppendMode) release go
-  where
-    release :: Either SomeException IO.Handle -> IO ()
-    release (Left _) = return ()
-    release (Right h) = do
-        liftIO $ BSC.hPutStrLn h ""
-        IO.hClose h
-
-    go :: MonadResource m => Either SomeException IO.Handle -> Conduit ByteString m ByteString
-    go (Left _) = awaitForever yield
-    go (Right h) = do
-        liftIO $ IO.hPutStrLn h url
-        awaitForever $ \bs -> liftIO (BSC.hPut h bs) >> yield bs
-#endif
 
 rest :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
      => ApiType
