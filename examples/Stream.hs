@@ -11,7 +11,7 @@ main = do
     oauth <- readOAuthFromJsonFile "oauth_consumer.json"
     token <- readAccessTokenFromJsonFile "access_token.json"
     runTwitter oauth token $ do
-        source <- sample (Just "length") (Just True)
+        source <- sample Nothing Nothing
         source $$+- awaitForever (liftIO . pp)
   where
     pp (UserStreamFriends uids) = putStrLn $ "friends: " ++ show uids
