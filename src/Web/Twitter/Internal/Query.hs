@@ -15,7 +15,7 @@ import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Types (Query, QueryItem, renderQuery)
 
 renderQuery' :: Query -> ByteString
-renderQuery' = renderQuery True . filter (isJust . snd)
+renderQuery' = renderQuery False . filter (isJust . snd)
 
 class QueryValue v where
     qv :: v -> Maybe ByteString

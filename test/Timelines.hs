@@ -20,14 +20,14 @@ runTimelinesTests oauth token1 token2 = do
             withTweetFrom oauth token1 text' $ \status -> do
                 mentions <- runTwitter oauth token2 $
                     mentionsTimeline Nothing Nothing Nothing Nothing Nothing Nothing
-                mentions `shouldContain` [status]
+                map statusId mentions `shouldContain` [statusId status]
 
     describe "statuses/user_timeline" $ do
         it "user_timeline" $ do
             text <- getRandomText
             runTwitter oauth token1 $ withTweet text $ \status -> do
                 tl <- userTimeline Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-                liftIO $ tl `shouldContain` [status]
+                liftIO $ map statusId tl `shouldContain` [statusId status]
 
     describe "statuses/home_timeline" $ do
         it "home_timeline" $ do
@@ -35,7 +35,7 @@ runTimelinesTests oauth token1 token2 = do
             withTweetFrom oauth token2 text $ \status -> do
                 tl <- runTwitter oauth token1 $
                     homeTimeline Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-                tl `shouldContain` [status]
+                map statusId tl `shouldContain` [statusId status]
 
     describe "statuses/retweets_of_me" $ do
         it "retweets_of_me" $ do

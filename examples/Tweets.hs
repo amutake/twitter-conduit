@@ -36,12 +36,14 @@ main = do
         liftIO $ putStrLn "---- update_with_media ----"
         liftIO $ putStr "Image path: "
         path <- liftIO getLine
-        usmres <- updateStatusWithMedia (text <> " + image") ["image.png", path] Nothing Nothing Nothing Nothing Nothing Nothing
+        usmres <- updateStatusWithMedia (text <> " + image") [path] Nothing Nothing Nothing Nothing Nothing Nothing
         liftIO $ print usmres
 
         liftIO $ putStrLn "---- destroy ----"
         dres <- destroy sid Nothing
         liftIO $ print dres
+        dres' <- destroy (statusId usmres) Nothing
+        liftIO $ print dres'
   where
     continue :: SomeException -> Twitter ()
     continue exc = do
