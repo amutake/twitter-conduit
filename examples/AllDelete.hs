@@ -13,7 +13,7 @@ main = do
     runTwitter oauth token $ do
         me <- verifyCredentials Nothing Nothing
         yn <- liftIO $ do
-            putStrLn $ "delete @" ++ T.unpack (userName me) ++ "'s all tweets. ok? [y/n]"
+            putStrLn $ "delete @" ++ T.unpack (userScreenName me) ++ "'s all tweets. ok? [y/n]"
             getLine
         case yn of
             "y" -> liftIO (putStrLn "start.") >> loop >> liftIO (putStrLn "done.")
@@ -21,5 +21,6 @@ main = do
   where
     loop = do
         tl <- userTimeline Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-        when (not . null $ tl) $
+        when (not . null $ tl) $ do
             forM_ tl $ \status -> destroy (statusId status) Nothing
+            loop
