@@ -24,6 +24,7 @@ library
   exposed-modules:     Web.Twitter
                        Web.Twitter.Auth
                        Web.Twitter.Core
+                       Web.Twitter.REST.DirectMessages
                        Web.Twitter.REST.Timelines
                        Web.Twitter.REST.Tweets
                        Web.Twitter.REST.Users
