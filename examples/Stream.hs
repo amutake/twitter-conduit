@@ -15,7 +15,7 @@ main = do
         source $$+- awaitForever (liftIO . pp)
   where
     pp (UserStreamFriends uids) = putStrLn $ "friends: " ++ show uids
-    pp (UserStreamEvent ev) = putStrLn $ "event: " ++ show (eventEvent ev)
+    pp (UserStreamEvent ev) = putStrLn $ "event: " ++ show (eventType ev)
     pp (UserStreamStatusDeletion sd) = putStrLn $ "status deletion: " ++ show (statusDeletionId sd)
     pp (UserStreamDirectMessage dm) = do
         putStrLn "direct message:"
