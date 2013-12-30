@@ -54,7 +54,7 @@ sent sid mid count page ent = rest REST "direct_messages/sent" methodGet query
 -- | <https://dev.twitter.com/docs/api/1.1/get/direct_messages/show> 2012-09-05 09:25
 showDirectMessage :: (MonadResource m, MonadBaseControl IO m)
                   => DirectMessageId -- ^ id
-                  -> TwitterT m [DirectMessage]
+                  -> TwitterT m DirectMessage
 showDirectMessage did = rest REST "direct_messages/show" methodGet query
   where
     query =
