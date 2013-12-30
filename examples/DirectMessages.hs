@@ -1,6 +1,5 @@
 module DirectMessages where
 
-import Control.Exception.Lifted
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text.IO as T
 

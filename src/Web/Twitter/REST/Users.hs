@@ -1,4 +1,7 @@
-module Web.Twitter.REST.Users where
+module Web.Twitter.REST.Users
+    ( verifyCredentials
+    , getAccountSettings
+    ) where
 
 import Data.Conduit (MonadResource, MonadBaseControl)
 import Network.HTTP.Types (methodGet)
@@ -19,3 +22,8 @@ verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet qu
         [ "include_entities" <:> ent
         , "skip_status" <:> skip
         ]
+
+-- | <https://dev.twitter.com/docs/api/1.1/get/account/settings> 2012-09-05 09:22
+getAccountSettings :: (MonadResource m, MonadBaseControl IO m)
+                   => TwitterT m Account
+getAccountSettings = rest REST "account/settings" methodGet []
