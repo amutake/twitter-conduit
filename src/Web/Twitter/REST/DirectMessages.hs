@@ -2,10 +2,11 @@ module Web.Twitter.REST.DirectMessages
     ( directMessages
     , sent
     , showDirectMessage
+    , destroyDirectMessage
     ) where
 
 import Data.Conduit (MonadResource, MonadBaseControl)
-import Network.HTTP.Types (methodGet)
+import Network.HTTP.Types (methodGet, methodPost)
 
 import Web.Twitter.Core
 import Web.Twitter.General
@@ -56,4 +57,16 @@ showDirectMessage did = rest REST "direct_messages/show" methodGet query
   where
     query =
         [ "id" <:> did
+        ]
+
+-- | <https://dev.twitter.com/docs/api/1.1/post/direct_messages/destroy> 2012-09-07 16:32
+destroyDirectMessage :: (MonadResource m, MonadBaseControl IO m)
+                     => DirectMessageId -- ^ id
+                     -> Maybe Bool -- ^ include_entities (optional)
+                     -> TwitterT m DirectMessage
+destroyDirectMessage did ent = rest REST "direct_messages/destroy" methodPost query
+  where
+    query =
+        [ "id" <:> did
+        , "include_entities" <:> ent
         ]
