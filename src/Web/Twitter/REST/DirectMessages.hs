@@ -3,9 +3,11 @@ module Web.Twitter.REST.DirectMessages
     , sent
     , showDirectMessage
     , destroyDirectMessage
+    , newDirectMessage
     ) where
 
 import Data.Conduit (MonadResource, MonadBaseControl)
+import Data.Text (Text)
 import Network.HTTP.Types (methodGet, methodPost)
 
 import Web.Twitter.Core
@@ -70,3 +72,14 @@ destroyDirectMessage did ent = rest REST "direct_messages/destroy" methodPost qu
         [ "id" <:> did
         , "include_entities" <:> ent
         ]
+
+-- | <https://dev.twitter.com/docs/api/1.1/post/direct_messages/new> 2012-10-02 14:07
+newDirectMessage :: (MonadResource m, MonadBaseControl IO m)
+                 => Either UserId ScreenName -- ^ user_id or screen_name
+                 -> Text -- ^ text
+                 -> TwitterT m DirectMessage
+newDirectMessage uidName text = rest REST "direct_messages/new" methodPost query
+  where
+    query = ["text" <:> text] ++ case uidName of
+        Left uid -> ["user_id" <:> uid]
+        Right name -> ["screen_name" <:> name]
