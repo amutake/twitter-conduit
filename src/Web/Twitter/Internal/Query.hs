@@ -9,7 +9,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
 import Data.Int (Int64)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, catMaybes)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Types (Query, QueryItem, renderQuery)
@@ -56,3 +56,9 @@ instance QueryValue Double where
 
 instance QueryValue v => QueryValue (Maybe v) where
     qv = (>>= qv)
+
+instance QueryValue v => QueryValue [v] where
+    qv = may . catMaybes . map qv
+      where
+        may [] = Nothing
+        may ls = Just $ BS.intercalate "," ls

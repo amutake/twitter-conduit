@@ -36,13 +36,15 @@ type ApiName = String
 type Endpoint = String
 
 data ApiType = REST
-             | UserStream
              | Stream
+             | UserStream
+             | SiteStream
 
 endpoint :: ApiType -> ApiName -> Endpoint
 endpoint REST name = "https://api.twitter.com/1.1/" ++ name ++ ".json"
-endpoint UserStream name = "https://userstream.twitter.com/1.1/" ++ name ++ ".json"
 endpoint Stream name = "https://stream.twitter.com/1.1/" ++ name ++ ".json"
+endpoint UserStream name = "https://userstream.twitter.com/1.1/" ++ name ++ ".json"
+endpoint SiteStream name = "https://sitestream.twitter.com/1.1/" ++ name ++ ".json"
 
 api :: (MonadResource m, MonadBaseControl IO m)
     => ApiType -- ^ API Type
