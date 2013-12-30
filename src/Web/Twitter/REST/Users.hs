@@ -18,7 +18,7 @@ verifyCredentials :: (MonadResource m, MonadBaseControl IO m)
                   => Maybe Bool -- ^ include_entities (optional)
                   -> Maybe Bool -- ^ skip_status (optional)
                   -> TwitterT m User
-verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet query
+verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet [] query
   where
     query =
         [ "include_entities" <:> ent
@@ -28,7 +28,7 @@ verifyCredentials ent skip = rest REST "account/verify_credentials" methodGet qu
 -- | <https://dev.twitter.com/docs/api/1.1/get/account/settings> 2012-09-05 09:22
 getAccountSettings :: (MonadResource m, MonadBaseControl IO m)
                    => TwitterT m Account
-getAccountSettings = rest REST "account/settings" methodGet []
+getAccountSettings = rest REST "account/settings" methodGet [] []
 
 -- | <https://dev.twitter.com/docs/api/1.1/post/account/settings> 2012-10-15 06:07
 updateAccountSettings :: (MonadResource m, MonadBaseControl IO m)
@@ -40,7 +40,7 @@ updateAccountSettings :: (MonadResource m, MonadBaseControl IO m)
                       -> Maybe LanguageCode -- ^ lang (optional) The language must be specified by the appropriate two letter ISO 639-1 representation.
                       -> TwitterT m Account
 updateAccountSettings woe sleep start end tz lang
-    = rest REST "account/settings" methodPost query
+    = rest REST "account/settings" methodPost [] query
   where
     query =
         [ "trend_location_woeid" <:> woe

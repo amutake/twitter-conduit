@@ -11,10 +11,10 @@ import Control.Exception.Lifted (catch)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Data.Aeson (FromJSON, Value (..), (.:))
-import Data.ByteString (ByteString)
 import Data.CaseInsensitive (mk)
 import Data.Conduit (MonadResource, ResumableSource, MonadThrow (..), MonadBaseControl, ($$+-))
 import qualified Data.Conduit.List as CL
+import Network.HTTP.Client.MultipartFormData
 import Network.HTTP.Conduit
 import Network.HTTP.Types
 import Web.Authenticate.OAuth
@@ -26,6 +26,7 @@ import Web.Twitter.Internal.Util
 
 #ifdef DEBUG
 import Control.Exception (try, SomeException, throwIO)
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Conduit (Conduit, yield, awaitForever, bracketP)
 import qualified System.IO as IO
@@ -49,15 +50,19 @@ stream :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
        => ApiType -- ^ API Type
        -> ApiName -- ^ API Name
        -> Method -- ^ HTTP request method
+       -> [Part] -- ^ Multipart
        -> Query -- ^ Query
        -> TwitterT m (ResumableSource (TwitterT m) a)
-stream ty name mth query = do
+stream ty name mth parts query = do
     env <- ask
     let oauth = twitterOAuth env
         token = twitterAccessToken env
         man = twitterManager env
     req <- liftIO $ parseUrl $ endpoint ty name
-    signed <- signOAuth oauth token req
+    req' <- if null parts
+        then return req
+        else formDataBody parts req
+    signed <- signOAuth oauth token req'
         { method = mth
         , queryString = renderQuery' query
         }
@@ -114,9 +119,10 @@ rest :: (MonadResource m, MonadBaseControl IO m, FromJSON a)
      => ApiType
      -> ApiName
      -> Method
+     -> [Part]
      -> Query
      -> TwitterT m a
-rest ty name mth query = do
-    src <- stream ty name mth query
+rest ty name mth parts query = do
+    src <- stream ty name mth parts query
     ma <- src $$+- CL.head
     maybe (monadThrow $ JsonParseError "nothing parsed") return ma

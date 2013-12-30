@@ -32,12 +32,6 @@ instance QueryValue ByteString where
 instance QueryValue BL.ByteString where
     qv = return . BL.toStrict
 
-instance QueryValue String where
-    qv = return . BS.pack
-
-instance QueryValue Char where
-    qv = return . BS.singleton
-
 instance QueryValue Bool where
     qv True = return "true"
     qv False = return "false"

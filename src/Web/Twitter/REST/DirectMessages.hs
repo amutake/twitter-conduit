@@ -23,7 +23,7 @@ directMessages :: (MonadResource m, MonadBaseControl IO m)
                -> Maybe Bool -- ^ include_entities (optional)
                -> Maybe Bool -- ^ skip_status (optional)
                -> TwitterT m [DirectMessage]
-directMessages sid mid count ent skip = rest REST "direct_messages" methodGet query
+directMessages sid mid count ent skip = rest REST "direct_messages" methodGet [] query
   where
     query =
         [ "since_id" <:> sid
@@ -41,7 +41,7 @@ sent :: (MonadResource m, MonadBaseControl IO m)
      -> Maybe Int -- ^ page (optional)
      -> Maybe Bool -- ^ include_entities (optional)
      -> TwitterT m [DirectMessage]
-sent sid mid count page ent = rest REST "direct_messages/sent" methodGet query
+sent sid mid count page ent = rest REST "direct_messages/sent" methodGet [] query
   where
     query =
         [ "since_id" <:> sid
@@ -55,7 +55,7 @@ sent sid mid count page ent = rest REST "direct_messages/sent" methodGet query
 showDirectMessage :: (MonadResource m, MonadBaseControl IO m)
                   => DirectMessageId -- ^ id
                   -> TwitterT m DirectMessage
-showDirectMessage did = rest REST "direct_messages/show" methodGet query
+showDirectMessage did = rest REST "direct_messages/show" methodGet [] query
   where
     query =
         [ "id" <:> did
@@ -66,7 +66,7 @@ destroyDirectMessage :: (MonadResource m, MonadBaseControl IO m)
                      => DirectMessageId -- ^ id
                      -> Maybe Bool -- ^ include_entities (optional)
                      -> TwitterT m DirectMessage
-destroyDirectMessage did ent = rest REST "direct_messages/destroy" methodPost query
+destroyDirectMessage did ent = rest REST "direct_messages/destroy" methodPost [] query
   where
     query =
         [ "id" <:> did
@@ -78,7 +78,7 @@ newDirectMessage :: (MonadResource m, MonadBaseControl IO m)
                  => Either UserId ScreenName -- ^ user_id or screen_name
                  -> Text -- ^ text
                  -> TwitterT m DirectMessage
-newDirectMessage uidName text = rest REST "direct_messages/new" methodPost query
+newDirectMessage uidName text = rest REST "direct_messages/new" methodPost [] query
   where
     query = ["text" <:> text] ++ case uidName of
         Left uid -> ["user_id" <:> uid]

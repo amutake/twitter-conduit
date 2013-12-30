@@ -19,7 +19,7 @@ mentionsTimeline :: (MonadResource m, MonadBaseControl IO m)
                  -> Maybe Bool -- ^ include_entities (optional)
                  -> TwitterT m [Status]
 mentionsTimeline count sid mid trim contrib inc =
-    rest REST "statuses/mentions_timeline" methodGet query
+    rest REST "statuses/mentions_timeline" methodGet [] query
   where
     query =
         [ "count" <:> count
@@ -43,7 +43,7 @@ userTimeline :: (MonadResource m, MonadBaseControl IO m)
              -> Maybe Bool -- ^ include_rts (optional)
              -> TwitterT m [Status]
 userTimeline uid name count sid mid trim rep contrib rts =
-    rest REST "statuses/user_timeline" methodGet query
+    rest REST "statuses/user_timeline" methodGet [] query
   where
     query =
         [ "user_id" <:> uid
@@ -68,7 +68,7 @@ homeTimeline :: (MonadResource m, MonadBaseControl IO m)
              -> Maybe Bool -- ^ include_rts (optional)
              -> TwitterT m [Status]
 homeTimeline count sid mid trim rep contrib rts =
-    rest REST "statuses/home_timeline" methodGet query
+    rest REST "statuses/home_timeline" methodGet [] query
   where
     query =
         [ "count" <:> count
@@ -90,7 +90,7 @@ retweetsOfMe :: (MonadResource m, MonadBaseControl IO m)
              -> Maybe Bool -- ^ include_user_entities (optional)
              -> TwitterT m [Status]
 retweetsOfMe count sid mid trim ent userent =
-    rest REST "statuses/retweets_of_me" methodGet query
+    rest REST "statuses/retweets_of_me" methodGet [] query
   where
     query =
         [ "count" <:> count

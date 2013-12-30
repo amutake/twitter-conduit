@@ -2,6 +2,7 @@ module Tweets where
 
 import Control.Exception.Lifted
 import Control.Monad.IO.Class (liftIO)
+import Data.Monoid ((<>))
 import qualified Data.Text.IO as T
 
 import Web.Twitter
@@ -31,6 +32,12 @@ main = do
         liftIO $ putStrLn "---- retweets ----"
         rsres <- retweets sid Nothing Nothing
         liftIO $ print rsres
+
+        liftIO $ putStrLn "---- update_with_media ----"
+        liftIO $ putStr "Image path: "
+        path <- liftIO getLine
+        usmres <- updateStatusWithMedia (text <> " + image") ["image.png", path] Nothing Nothing Nothing Nothing Nothing Nothing
+        liftIO $ print usmres
 
         liftIO $ putStrLn "---- destroy ----"
         dres <- destroy sid Nothing

@@ -20,7 +20,7 @@ site :: (MonadResource m, MonadBaseControl IO m)
      -> Maybe Text -- ^ replies (optional)
      -> Maybe Bool -- ^ stringify_friend_ids (optional)
      -> TwitterT m (ResumableSource (TwitterT m) StreamMessage)
-site fids del warn with rep str = stream SiteStream "site" methodGet query
+site fids del warn with rep str = stream SiteStream "site" methodGet [] query
   where
     query =
         [ "follow" <:> fids
