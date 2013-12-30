@@ -27,6 +27,7 @@ library
                        Web.Twitter.REST.Timelines
                        Web.Twitter.REST.Tweets
                        Web.Twitter.REST.Users
+                       Web.Twitter.Streaming.Public
                        Web.Twitter.Streaming.User
                        Web.Twitter.Util
   other-modules:       Web.Twitter.General
