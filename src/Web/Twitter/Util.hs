@@ -7,9 +7,10 @@ module Web.Twitter.Util
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Aeson (Value (..), (.:), toJSON)
-import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BL
 import Data.Map (fromList)
+import qualified Data.Map as Map
 import System.IO (withBinaryFile, hPutStrLn, IOMode (..))
 import Web.Authenticate.OAuth (oauthConsumerKey, oauthConsumerSecret, unCredential)
 
@@ -42,13 +43,15 @@ saveOAuthToJsonFile path oauth = withBinaryFile path WriteMode $ \handle -> do
     hPutStrLn handle ""
   where
     encoder oa = toJSON . fromList $ (
-        [ ("consumer_key", oauthConsumerKey oa)
-        , ("consumer_secret", oauthConsumerSecret oa)
-        ] :: [(ByteString, ByteString)])
+        [ ("consumer_key", BSC.unpack $ oauthConsumerKey oa)
+        , ("consumer_secret", BSC.unpack $ oauthConsumerSecret oa)
+        ] :: [(String, String)])
 
 saveAccessTokenToJsonFile :: FilePath -> AccessToken -> IO ()
 saveAccessTokenToJsonFile path cred = withBinaryFile path WriteMode $ \handle -> do
     BL.hPutStr handle $ encodeWith encoder cred
     hPutStrLn handle ""
   where
-    encoder = toJSON . fromList . unCredential
+    encoder = toJSON
+            . Map.mapKeys BSC.unpack . Map.map BSC.unpack
+            . fromList . unCredential

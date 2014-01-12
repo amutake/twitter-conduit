@@ -8,7 +8,7 @@ module Web.Twitter.Auth
     ) where
 
 import Control.Monad.Trans (lift)
-import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BSC
 import Data.Conduit (MonadResource, MonadBaseControl, runResourceT)
 import Network.HTTP.Conduit (withManager)
 import Web.Authenticate.OAuth hiding (newOAuth)
@@ -16,18 +16,18 @@ import Web.Authenticate.OAuth hiding (newOAuth)
 import Web.Twitter.Internal.Types
 import Web.Twitter.Internal.Util
 
-newOAuth :: ByteString -> ByteString -> OAuth
+newOAuth :: String -> String -> OAuth
 newOAuth key secret = def
     { oauthServerName = "api.twitter.com"
     , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
     , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
     , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
-    , oauthConsumerKey = key
-    , oauthConsumerSecret = secret
+    , oauthConsumerKey = BSC.pack key
+    , oauthConsumerSecret = BSC.pack secret
     }
 
-newAccessToken :: ByteString -> ByteString -> AccessToken
-newAccessToken = newCredential
+newAccessToken :: String -> String -> AccessToken
+newAccessToken token secret = newCredential (BSC.pack token) (BSC.pack secret)
 
 authorize :: (MonadResource m, MonadBaseControl IO m)
           => OAuth
