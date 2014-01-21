@@ -4,6 +4,7 @@ import Web.Twitter
 import Tweets
 import Timelines
 import DirectMessages
+import Favorites
 
 main :: IO ()
 main = do
@@ -15,3 +16,4 @@ main = do
         runTweetsTests oauth token1 token2
         runTimelinesTests oauth token1 token2
         runDirectMessagesTests oauth token1 token2
+        runFavoritesTests oauth token1 token2

@@ -25,6 +25,7 @@ library
                        Web.Twitter.Auth
                        Web.Twitter.Core
                        Web.Twitter.REST.DirectMessages
+                       Web.Twitter.REST.Favorites
                        Web.Twitter.REST.Timelines
                        Web.Twitter.REST.Tweets
                        Web.Twitter.REST.Users

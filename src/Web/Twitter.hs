@@ -2,6 +2,7 @@ module Web.Twitter
     ( module Web.Twitter.Auth
     , module Web.Twitter.Core
     , module Web.Twitter.REST.DirectMessages
+    , module Web.Twitter.REST.Favorites
     , module Web.Twitter.REST.Timelines
     , module Web.Twitter.REST.Tweets
     , module Web.Twitter.REST.Users
@@ -16,6 +17,7 @@ module Web.Twitter
 import Web.Twitter.Auth
 import Web.Twitter.Core
 import Web.Twitter.REST.DirectMessages
+import Web.Twitter.REST.Favorites
 import Web.Twitter.REST.Timelines
 import Web.Twitter.REST.Tweets
 import Web.Twitter.REST.Users
