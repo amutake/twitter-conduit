@@ -15,7 +15,7 @@ module Web.Twitter.Internal.Util
 import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO)
 import Data.Aeson hiding (Error)
-import Data.Aeson.Encode (fromValue)
+import Data.Aeson.Encode (encodeToTextBuilder)
 import qualified Data.Aeson.Types as AT
 import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.Attoparsec as AS
@@ -66,7 +66,7 @@ eitherDecodeStrictWith :: (Value -> AT.Parser a) -> ByteString -> Either String 
 eitherDecodeStrictWith parser = AS.eitherResult . AS.parse json' >=> AT.parseEither parser
 
 encodeWith :: (a -> Value) -> a -> BL.ByteString
-encodeWith enc = encodeUtf8 . toLazyText . fromValue . enc
+encodeWith enc = encodeUtf8 . toLazyText . encodeToTextBuilder . enc
 
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
