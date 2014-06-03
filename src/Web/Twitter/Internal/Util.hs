@@ -9,7 +9,7 @@ module Web.Twitter.Internal.Util
     , eitherDecodeWith
     , eitherDecodeStrictWith
     , encodeWith
-    , ($=+)
+    , ($=++)
     ) where
 
 import Control.Monad ((>=>))
@@ -17,8 +17,8 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Aeson hiding (Error)
 import Data.Aeson.Encode (encodeToTextBuilder)
 import qualified Data.Aeson.Types as AT
-import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.Attoparsec as AS
+import qualified Data.Attoparsec.Lazy as AL
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
@@ -68,10 +68,10 @@ eitherDecodeStrictWith parser = AS.eitherResult . AS.parse json' >=> AT.parseEit
 encodeWith :: (a -> Value) -> a -> BL.ByteString
 encodeWith enc = encodeUtf8 . toLazyText . encodeToTextBuilder . enc
 
-($=+) :: MonadIO m
+($=++) :: MonadIO m
       => CI.ResumableSource m a
       -> CI.Conduit a m o
       -> m (CI.ResumableSource m o)
-rsrc $=+ cndt = do
+rsrc $=++ cndt = do
   (src, finalizer) <- unwrapResumable rsrc
   return $ CI.ResumableSource (src $= cndt) finalizer

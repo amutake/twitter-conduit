@@ -68,8 +68,8 @@ stream ty name mth parts query = do
         }
 #ifdef DEBUG
     res <- http signed man `catch` logger signed `catch` rethrowException
-    res' <- responseBody res $=+ conduitLog signed
-    res' $=+ conduitFromJSON
+    res' <- responseBody res $=++ conduitLog signed
+    res' $=++ conduitFromJSON
   where
     logger :: MonadResource m => Request -> SomeException -> TwitterT m a
     logger req exc = liftIO $ IO.withFile "debug.log" IO.AppendMode $ \h -> do
@@ -79,7 +79,7 @@ stream ty name mth parts query = do
         throwIO exc
 #else
     res <- http signed man `catch` rethrowException
-    responseBody res $=+ conduitFromJSON
+    responseBody res $=++ conduitFromJSON
 #endif
 
 #ifdef DEBUG

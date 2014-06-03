@@ -53,6 +53,7 @@ library
                      , resourcet
                      , conduit >=1.0
                      , http-types
+                     , http-client
                      , http-client-multipart
                      , http-conduit >=2.0
                      , authenticate-oauth
