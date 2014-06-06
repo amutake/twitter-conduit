@@ -1,7 +1,6 @@
 module SaveAuthFile where
 
 import Control.Monad (unless)
-import qualified Data.ByteString as BS
 
 import Web.Twitter
 
@@ -16,9 +15,9 @@ main = do
             readOAuthFromJsonFile path
         _ -> do
             putStr "Input consumer key: "
-            key <- BS.getLine
+            key <- getLine
             putStr "Input consumer secret: "
-            secret <- BS.getLine
+            secret <- getLine
             return $ newOAuth key secret
     token <- authorizeIO oauth $ \url -> do
         putStr "Authorize URL: "
